@@ -15,5 +15,5 @@ con = lite.connect('sensorsData.db')
 with con:
     
     cur = con.cursor() 
-    cur.execute("DROP TABLE IF EXISTS DHT_data")
-    cur.execute("CREATE TABLE DHT_data(timestamp DATETIME, temp NUMERIC, hum NUMERIC)")
+    cur.execute("DROP TABLE IF EXISTS Door_data")
+    cur.execute("CREATE TABLE Door_data(timestamp DATETIME, angv NUMERIC, lux NUMERIC)")
