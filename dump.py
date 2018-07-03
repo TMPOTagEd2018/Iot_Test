@@ -9,9 +9,9 @@ def add_data (angv, lux):
     conn.commit()
 
 # call the function to insert data
-add_data (40, 10)
-add_data (50, 20)
-add_data (60, 50)
+# add_data (40, 10)
+# add_data (50, 20)
+# add_data (60, 50)
 
 # print database content
 print ("\nEntire database contents:\n")
