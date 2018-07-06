@@ -9,10 +9,9 @@ curs=conn.cursor()
 HOST = '192.168.4.1'
 PORT = 8000
 
-def add_data (angv, lux):
-    curs.execute("INSERT INTO Door_data values(datetime('now'), (?), (?))", (angv, lux))
+def add_data (doorIMU, doorContact, boxAccel, boxContact, roomMic, roomLux, roomPIR):
+    curs.execute("INSERT INTO incomingData values(timestamp('now'), (?), (?), (?), (?), (?), (?), (?))", (doorIMU, doorContact, boxAccel, boxContact, roomMic, roomLux, roomPIR))
     conn.commit()
-
 
 def connectionHandler(client, addr):
     while True:
@@ -20,7 +19,7 @@ def connectionHandler(client, addr):
         if not msg:
             break
         print(msg)
-        add_data(int(msg), 10)
+        add_data(int(msg), 10, 10, 10, 10, 10, 10)
         client.send(msg.encode())
     client.close()
 
