@@ -13,7 +13,7 @@
 # git has its own built in compression methods
 *.7z
 *.dmg
-*.gz
+*.gzs
 *.iso
 *.jar
 *.rar
@@ -35,3 +35,11 @@
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+
+
+#My files
+sensorsData.db
+sqldiff.exe
+sqlite3_analyzer.exe
+sqlite3.exe
