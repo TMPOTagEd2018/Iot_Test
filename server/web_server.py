@@ -1,6 +1,8 @@
-from flask import Flask, render_template, request
+from flask import Flask, send_from_directory, request
 from flask_restful import Resource, Api
+from os.path import join
 
+import sys
 import sqlite3
 
 def get_data_since(node, sensor, time, limit = 500):
@@ -26,7 +28,7 @@ def get_data(node, sensor, limit = 500):
 class Node(Resource):
 	def get(self, node, sensor, time = None, limit = 1):
 		if time:
-			data = get_data_since(node, sensor, time, limit)
+			data = get_data_since(node, sensor, time)
 		else:
 			data = get_data(node, sensor, limit)
 		return list(map(lambda row: { "timestamp": row[0], "value": row[1] }, data))
@@ -34,7 +36,7 @@ class Node(Resource):
 # main route
 
 def create_app():
-	app = Flask(__name__)
+	app = Flask(__name__, static_folder="../client/dist", static_url_path="")
 	api = Api(app)
 	api.add_resource(Node,
 		"/api/<string:node>/<string:sensor>/",
@@ -45,9 +47,9 @@ def create_app():
 
 app = create_app()
 
-@app.route("/")
+@app.route('/')
 def index():
-	return render_template("../client/dist/index.html")
+	return app.send_static_file('index.html')
 
 if __name__ == "__main__":
 	app.run(debug=True)
