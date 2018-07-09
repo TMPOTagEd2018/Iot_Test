@@ -5,7 +5,6 @@ const config = require("./config");
 const ForkTsCheckerWebpackPlugin = require("fork-ts-checker-webpack-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const CleanWebpackPlugin = require("clean-webpack-plugin");
-const WorkboxWebpackPlugin = require("workbox-webpack-plugin");
 const { VueLoaderPlugin } = require("vue-loader");
 
 const plugins = [
@@ -20,27 +19,6 @@ const plugins = [
         template: "src/index.html",
         xhtml: true
     }),
-    // manifest for fanciness
-    // new WebpackPWAManifest({
-    //     name: "Rain Institute Library",
-    //     short_name: "RI Library",
-    //     start_url: ".",
-    //     display: "fullscreen",
-    //     background_color: "#eee",
-    //     description: "The official app of the Rain Institute Library.",
-    //     theme_color: "#eee",
-    //     icons: [
-    //         {
-    //             src: path.resolve(__dirname, "src/res/img/logo-lg.png"),
-    //             sizes: [96, 128, 192, 256, 384, 512]
-    //         }
-    //     ]
-    // }),
-    // offline caching!
-    // new WorkboxWebpackPlugin.GenerateSW({
-    //     clientsClaim: true,
-    //     skipWaiting: true
-    // }),
     new CleanWebpackPlugin(["dist"], {
         verbose: false,
         exclude: ["vendor-bundles"]
