@@ -1,7 +1,10 @@
-import App from "@component/app/app.vue";
-import store from "@lib/state";
+import 'bootstrap';
+
 import Vue from "vue";
 import VueRouter from "vue-router";
+
+import App from "@component/app/app.vue";
+import store from "@lib/state";
 
 Vue.use(VueRouter);
 
