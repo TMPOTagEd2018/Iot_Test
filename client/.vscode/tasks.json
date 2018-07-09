@@ -93,6 +93,16 @@
                     ]
                 }
             ]
+        },
+        {
+            "label": "Basic Server",
+            "type": "shell",
+            "command": "python -m http.server",
+            "problemMatcher": [],
+            "options": {
+                "cwd": "${workspaceFolder}/dist/"
+            },
+             "isBackground": true
         }
     ]
 }

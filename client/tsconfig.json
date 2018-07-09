@@ -15,6 +15,9 @@
             "@lib/*": [
                 "src/lib/*"
             ],
+            "@page/*": [
+                "src/component/page/*"
+            ],
             "@util/*": [
                 "src/util/*"
             ],

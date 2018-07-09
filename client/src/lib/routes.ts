@@ -3,6 +3,7 @@ import VueRouter from "vue-router";
 
 const router = new VueRouter({
     routes: [
+        { path: "/", component: () => import("@page/dashboard.vue") }
     ],
     mode: process.env.NODE_ENV === "development" ? "hash" : "history"
 });
