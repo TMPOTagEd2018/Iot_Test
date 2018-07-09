@@ -6,40 +6,27 @@ import sqlite3
 
 conn = sqlite3.connect('../sensors-data.db')
 
+'''
 # Retrieve data from database
 def getData():
     curs = conn.cursor()
+	data = []
+	names = ["door_imu", "door_contact", "box_accel", "box_contact", "room_mic", "room_lux", "room_pir"]
 
-    for row in curs.execute("SELECT * FROM door_imu ORDER BY timestamp ASC LIMIT 1"):
-        timestamp = str(row[0])
-        doorIMU = row[1]
+	for name in names:
+    	for row in curs.execute("SELECT * FROM " + name + " ORDER BY timestamp ASC LIMIT 1"):
+        	timestamp = str(row[0])
+        	data.append(row[1])
         
-	for row in curs.execute("SELECT * FROM door_contact ORDER BY timestamp ASC LIMIT 1"):
-        timestamp = str(row[0])	
-		doorContact = row[1]
-
-	for row in curs.execute("SELECT * FROM box_accel ORDER BY timestamp ASC LIMIT 1"):
-        timestamp = str(row[0])
-        boxAccel = row[1]
-    for row in curs.execute("SELECT * FROM box_contact ORDER BY timestamp ASC LIMIT 1"):
-        timestamp = str(row[0])
-		boxContact = row[1]
-	for row in curs.execute("SELECT * FROM room_mic ORDER BY timestamp ASC LIMIT 1"):
-        timestamp = str(row[0])
-        roomMic = row[1]
-	for row in curs.execute("SELECT * FROM room_lux ORDER BY timestamp ASC LIMIT 1"):
-        timestamp = str(row[0])	
-        roomLux = row[1]
-	for row in curs.execute("SELECT * FROM room_pir ORDER BY timestamp ASC LIMIT 1"):
-        timestamp = str(row[0])
-        roomPIR = row[1]
+	
     conn.close()
     return timestamp, doorIMU, doorContact, boxAccel, boxContact, roomMic, roomLux, roomPIR
+'''
 
 def get_latest_data(node, sensor):
 	table = node + "_" * sensor
-	for row in curs.execute("SELECT * FROM table ORDER BY timestamp ASC LIMIT 1"):
-		print (str(row[0])+ str(row[1])) 
+	for row in curs.execute("SELECT * FROM " + table + " ORDER BY timestamp ASC LIMIT 1"):
+		return str(row[0]), str(row[1]) 
 
 class Node(Resource):
 	def __init__(self, node):
