@@ -4,26 +4,42 @@ from flask_restful import Resource, Api
 
 import sqlite3
 
-conn = sqlite3.connect('../sensorsData.db')
+conn = sqlite3.connect('../sensors-data.db')
 
 # Retrieve data from database
 def getData():
     curs = conn.cursor()
 
-    for row in curs.execute("SELECT * FROM incomingData ORDER BY timestamp ASC LIMIT 1"):
+    for row in curs.execute("SELECT * FROM door_imu ORDER BY timestamp ASC LIMIT 1"):
         timestamp = str(row[0])
         doorIMU = row[1]
-        doorContact = row[2]
-        boxAccel = row[3]
-        boxContact = row[4]
-        roomMic = row[5]
-        roomLux = row[6]
-        roomPIR = row[7]
+        
+	for row in curs.execute("SELECT * FROM door_contact ORDER BY timestamp ASC LIMIT 1"):
+        timestamp = str(row[0])	
+		doorContact = row[1]
+
+	for row in curs.execute("SELECT * FROM box_accel ORDER BY timestamp ASC LIMIT 1"):
+        timestamp = str(row[0])
+        boxAccel = row[1]
+    for row in curs.execute("SELECT * FROM box_contact ORDER BY timestamp ASC LIMIT 1"):
+        timestamp = str(row[0])
+		boxContact = row[1]
+	for row in curs.execute("SELECT * FROM room_mic ORDER BY timestamp ASC LIMIT 1"):
+        timestamp = str(row[0])
+        roomMic = row[1]
+	for row in curs.execute("SELECT * FROM room_lux ORDER BY timestamp ASC LIMIT 1"):
+        timestamp = str(row[0])	
+        roomLux = row[1]
+	for row in curs.execute("SELECT * FROM room_pir ORDER BY timestamp ASC LIMIT 1"):
+        timestamp = str(row[0])
+        roomPIR = row[1]
     conn.close()
     return timestamp, doorIMU, doorContact, boxAccel, boxContact, roomMic, roomLux, roomPIR
 
 def get_latest_data(node, sensor):
-	# TODO: Grace please make this function query the db for a given node and sensor
+	table = node + "_" * sensor
+	for row in curs.execute("SELECT * FROM table ORDER BY timestamp ASC LIMIT 1"):
+		print (str(row[0])+ str(row[1])) 
 
 class Node(Resource):
 	def __init__(self, node):
