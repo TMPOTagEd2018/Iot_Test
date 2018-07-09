@@ -25,7 +25,7 @@ def getData():
 
 
 def get_latest_data(node, sensor):
-	with sqlite3.connect('../sensors-data.db') as conn:
+	with sqlite3.connect('sensors-data.db') as conn:
 		cur = conn.cursor()
 		table = node + "_" + sensor
 		for row in cur.execute("SELECT * FROM " + table + " ORDER BY timestamp ASC LIMIT 1"):
