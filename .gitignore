@@ -36,12 +36,7 @@
 ehthumbs.db
 Thumbs.db
 
-
-
-#My files
-sensorsData.db
-sqldiff.exe
-sqlite3_analyzer.exe
-sqlite3.exe
-
-.pytest_cache/
+**/.pytest_cache/
+**/.vscode/.ropeproject/
+**/*.db
+**/*.exe
