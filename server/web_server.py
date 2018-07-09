@@ -22,19 +22,8 @@ def getData():
 
 # main route 
 @app.route("/")
-def index():	
-	timestamp, doorIMU, doorContact, boxAccel, boxContact, roomMic, roomLux, roomPIR = getData()
-	templateData = {
-		'timestamp': timestamp,
-		'doorIMU': doorIMU,
-		'doorContact': doorContact,
-		'boxAccel': boxAccel,
-		'boxContact': boxContact,
-		'roomMic': roomMic,
-		'roomLux': roomLux,
-		'roomPIR': roomPIR,
-	}
-	return render_template('index.html', **templateData)
+def index():
+	return render_template("../", **templateData)
 def create_app():
   app = Flask(__name__)
   Bootstrap(app)

@@ -1,0 +1,110 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build & Publish to Staging",
+            "type": "shell",
+            "command": "powershell ./script/publish.ps1",
+            "problemMatcher": []
+        },
+        {
+            "label": "Build & Publish to Production",
+            "type": "shell",
+            "command": "powershell ./script/publish-prod.ps1",
+            "problemMatcher": []
+        },
+        {
+            "type": "shell",
+            "command": "webpack --debug --display-error-details --config webpack.dev.js",
+            "label": "Webpack (Dev)",
+            "group": "build",
+            "promptOnClose": true,
+            "problemMatcher": {
+                "owner": "webpack",
+                "severity": "error",
+                "fileLocation": "absolute",
+                "source": "webpack",
+                "pattern": [
+                    {
+                        "regexp": "ERROR in (.*)",
+                        "file": 1
+                    },
+                    {
+                        "regexp": "\\((\\d+),(\\d+)\\):(.*)",
+                        "line": 1,
+                        "column": 2,
+                        "message": 3
+                    }
+                ]
+            }
+        },
+        {
+            "type": "shell",
+            "command": "webpack -w --config webpack.dev.js",
+            "label": "Webpack (Dev, Continuous)",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "promptOnClose": true,
+            "isBackground": true,
+            "problemMatcher": [
+                {
+                    "owner": "Webpack (Dev, Continuous)",
+                    "severity": "error",
+                    "fileLocation": "absolute",
+                    "source": "webpack-typescript",
+                    "background": {
+                        "activeOnStart": true,
+                        "beginsPattern": "Child html-webpack-plugin",
+                        "endsPattern": "Time: (\\d+)ms"
+                    },
+                    "pattern": [
+                        {
+                            "regexp": "ERROR in ([^\\(]*)\\((\\d+),(\\d+)\\):",
+                            "file": 1,
+                            "line": 2,
+                            "column": 3
+                        },
+                        {
+                            "regexp": "([A-Za-z0-9-]+):(.*)",
+                            "message": 2,
+                            "code": 1
+                        }
+                    ]
+                },
+                {
+                    "owner": "Webpack (Dev, Continuous)",
+                    "severity": "error",
+                    "fileLocation": "absolute",
+                    "source": "webpack",
+                    "background": {
+                        "activeOnStart": true,
+                        "beginsPattern": "Hash: [0-9a-f]{20}",
+                        "endsPattern": "Child html-webpack-plugin"
+                    },
+                    "pattern": [
+                        {
+                            "regexp": "ERROR in (.*)",
+                            "file": 1
+                        },
+                        {
+                            "regexp": "([A-Za-z0-9-\\s]+):\\s([A-Za-z0-9-\\s]+):(.*)",
+                            "message": 3,
+                            "severity": 2,
+                            "code": 1
+                        },
+                        {
+                            "regexp": "\\s@\\s[A-Za-z0-9-]+\\s(\\d+):(\\d+)-(\\d+)",
+                            "line": 1,
+                            "column": 2,
+                            "endColumn": 3
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
