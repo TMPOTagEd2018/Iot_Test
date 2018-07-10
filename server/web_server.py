@@ -6,7 +6,7 @@ import sys
 import sqlite3
 
 def get_data_since(node, sensor, time, limit = 500):
-	with sqlite3.connect('sensor-data.db') as conn:
+	with sqlite3.connect('data.db') as conn:
 		cur = conn.cursor()
 		limit = min(500, limit)
 		rows = list(cur.execute( \
@@ -16,7 +16,7 @@ def get_data_since(node, sensor, time, limit = 500):
 		return rows
 
 def get_data(node, sensor, limit = 500):
-	with sqlite3.connect('sensor-data.db') as conn:
+	with sqlite3.connect('data.db') as conn:
 		cur = conn.cursor()
 		limit = min(500, limit)
 		rows = list(cur.execute( \

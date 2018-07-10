@@ -79,6 +79,8 @@ with sqlite3.connect(path) as conn:  # type: sqlite3.Connection
         conn.execute(r"""
         CREATE TABLE threats (
             timestamp TIME    NOT NULL,
+            node      TEXT,
+            threat    TEXT,
             old_level INTEGER NOT NULL,
             new_level INTEGER NOT NULL
         );
