@@ -42,10 +42,11 @@ import * as vue from "av-ts";
 import Vue from "vue";
 
 enum SensorType {
-  Contact = "Contact",
+  Contact = "Contact Sensor",
   Accelerometer = "Accelerometer",
-  Lux = "Lux",
-  Microphone = "Microphone"
+  Lux = "Lux Sensor",
+  Microphone = "Microphone", 
+  PIR = "Passive Infrared Sensor"
 }
 
 class Sensor {
