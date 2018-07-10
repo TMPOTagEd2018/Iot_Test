@@ -18,7 +18,7 @@
             "type": "chrome",
             "name": "HTTPS",
             "request": "launch",
-            "url": "https://localhost:8001/",
+            "url": "https://localhost:5000/",
             "webRoot": "${workspaceFolder}/dist",
             "sourceMapPathOverrides": {
                 "webpack:///./src/*": "${workspaceFolder}/src/*"

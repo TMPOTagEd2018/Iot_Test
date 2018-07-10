@@ -3,7 +3,8 @@
 import paho.mqtt.client as mqtt
 
 import monitor
-import monitor.gyro
+import monitor.imu
+import monitor.contact
 import monitor.heartbeat
 
 import keyex
@@ -17,18 +18,20 @@ from rx import Observable
 from typing import Dict
 
 monitors: Dict[str, monitor.Monitor]  = {
-    "door/gyro": monitor.gyro.GyroMonitor(1),
-    "box/gyro": monitor.gyro.GyroMonitor(2),
-    "door/heartbeat": monitor.heartbeat.HeartbeatMonitor(1),
-    "room/heartbeat": monitor.heartbeat.HeartbeatMonitor(2),
-    "box/heartbeat": monitor.heartbeat.HeartbeatMonitor(3)
+    "door/contact": monitor.contact.ContactMonitor(1),
+    "door/imu": monitor.imu.ImuMonitor(1),
+    "box/imu": monitor.imu.ImuMonitor(2),
+    "box/contact": monitor.contact.ContactMonitor(1),
+    # "door/heartbeat": monitor.heartbeat.HeartbeatMonitor(1),
+    # "room/heartbeat": monitor.heartbeat.HeartbeatMonitor(2),
+    # "box/heartbeat": monitor.heartbeat.HeartbeatMonitor(3)
 }
 
 threats = Observable.merge(*map(lambda m: m.threats, monitors.values()))
 
 processor = ThreatProcessor(threats, 5)
 
-monitors["door/heartbeat"].input(0)
+# monitors["door/heartbeat"].input(0)
 
 # The callback for when the client receives a CONNACK response from the server.
 def on_connect(client, userdata, flags, rc):
@@ -37,7 +40,6 @@ def on_connect(client, userdata, flags, rc):
     # Subscribing in on_connect() means that if we lose the connection and
     # reconnect then subscriptions will be renewed.
 
-    client.subscribe("door/gyro")
     client.subscribe("door/imu")
     client.subscribe("door/contact")
     client.subscribe("door/heartbeat")
@@ -49,7 +51,7 @@ def on_connect(client, userdata, flags, rc):
     client.subscribe("room/heartbeat")
     client.subscribe("room/key")
 
-    client.subscribe("box/accel")
+    client.subscribe("box/imu")
     client.subscribe("box/contact")
     client.subscribe("box/range")
     client.subscribe("box/heartbeat")
@@ -63,7 +65,7 @@ def on_message(client: mqtt.Client, userdata, msg: mqtt.MQTTMessage):
     node_name, sensor_name = path.split(msg.topic)
 
     if sensor_name == "key":
-        they_pk = msg.payload.decode()
+        they_pk = msg.payload
 
         client.publish(msg.topic, payload=dh.gen_public_key(), qos=1)
 
@@ -75,6 +77,8 @@ def on_message(client: mqtt.Client, userdata, msg: mqtt.MQTTMessage):
         # TODO: decode msg.payload using keys[node_name]
         monitors[msg.topic].input(msg.payload.decode())
     else:
+        if msg.topic == "box/imu":
+            print("ree", msg.payload.decode())
         monitors[msg.topic].input(msg.payload.decode())
         
 client = mqtt.Client()

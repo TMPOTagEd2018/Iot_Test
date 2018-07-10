@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@types/chart.js": "^2.7.27",
     "@types/lodash": "^4.14.110",
     "@types/node": "^8.10.11",
     "@types/webpack": "^4.4.5",
@@ -19,6 +20,7 @@
     "axios": "^0.18.0",
     "bootstrap": "^4.1.1",
     "cache-loader": "^1.2.2",
+    "chart.js": "^2.7.2",
     "clean-webpack-plugin": "^0.1.19",
     "compression-webpack-plugin": "^1.1.11",
     "css-loader": "^1.0.0",
@@ -39,6 +41,7 @@
     "typescript": "^2.9.2",
     "uglifyjs-webpack-plugin": "^1.2.7",
     "vue": "^2.5.16",
+    "vue-chartjs": "^3.3.2",
     "vue-loader": "^15.2.4",
     "vue-route": "^1.5.1",
     "vue-router": "^3.0.1",

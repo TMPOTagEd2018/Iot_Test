@@ -7,7 +7,7 @@ import numpy as np
 
 from . import Monitor
 
-class GyroMonitor(Monitor):
+class ImuMonitor(Monitor):
     def __init__(self, sensitivity = 1):
         super().__init__()
 

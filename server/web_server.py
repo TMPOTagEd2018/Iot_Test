@@ -29,17 +29,27 @@ def get_threat_data(node, threat, min_level=None, since_time=None, limit=500):
 		cur = conn.cursor()
 		limit = min(500, limit)
 
-		condition = f"WHERE node = '{node}' and threat = '{threat}'"
+		conditions = []
+
+		if node is not None and threat is not None:
+			conditions.append(f"node = '{node}' and threat = '{threat}'")
 
 		if since_time is not None:
-			condition += f" and timestamp > {since_time}"
+			conditions.append(f"timestamp >= {since_time}")
 
 		if min_level is not None:
-			condition += f" and new_level >= {min_level}"
+			conditions.append(f"new_level >= {min_level}")
 
-		rows = list(cur.execute(
-			f"SELECT * FROM threats " + condition +
-			f"ORDER BY timestamp DESC LIMIT {limit}"))
+		where = ""
+
+		if len(conditions) > 0:
+			where = "WHERE " + " and ".join(conditions)
+
+		query = f"SELECT * FROM threats {where} ORDER BY timestamp DESC LIMIT {limit}"
+
+		print(query, file=open("debug", "w+"))
+
+		rows = list(cur.execute(query))
 		return rows
 
 
@@ -78,7 +88,10 @@ def create_app():
 					 "/api/sensor/<string:node>/<string:sensor>/since:<int:time>/limit:<int:limit>")
 
 	api.add_resource(Threat,
+						"/api/threat/",
 						"/api/threat/limit:<int:limit>",
+						"/api/threat/since:<int:time>",
+						"/api/threat/since:<int:time>/limit:<int:limit>",
 						"/api/threat/minlevel:<int:min_level>/limit:<int:limit>",
 						"/api/threat/<string:node>/<string:threat>/",
 						"/api/threat/<string:node>/<string:threat>/limit:<int:limit>",
