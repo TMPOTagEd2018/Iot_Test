@@ -41,4 +41,6 @@ Thumbs.db
 **/*.db
 **/*.exe
 
+certs/
+
 __pycache__
