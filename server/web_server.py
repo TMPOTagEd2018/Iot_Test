@@ -47,9 +47,10 @@ def get_threat_data(node, threat, min_level=None, since_time=None, limit=500):
 
 		query = f"SELECT * FROM threats {where} ORDER BY timestamp DESC LIMIT {limit}"
 
-		print(query, file=open("debug", "w+"))
 
 		rows = list(cur.execute(query))
+		print(rows, file=open("debug", "w+"))
+
 		return rows
 
 

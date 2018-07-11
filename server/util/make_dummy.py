@@ -81,10 +81,14 @@ with sqlite3.connect(path) as conn:  # type: sqlite3.Connection
             timestamp TIME    NOT NULL,
             node      TEXT,
             threat    TEXT,
-            old_level INTEGER NOT NULL,
-            new_level INTEGER NOT NULL
+            old_level NUMERIC NOT NULL,
+            new_level NUMERIC NOT NULL
         );
         """)
+        
     except:
         # error means that the table already exists
         pass
+
+    for i in range(20):
+        conn.execute(f"INSERT INTO threats VALUES ({time.time()}, null, null, 4, 4)")

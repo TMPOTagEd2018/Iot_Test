@@ -25,11 +25,12 @@ class ThreatProcessor:
             buffer = [0]
 
         threat_score = (np.sum(buffer) + np.max(buffer)) / (np.std(buffer) + 1) / self.sensitivity * 2
+        # threat_score += ((threat_score - self.prev_score) * .25) * 0.1
 
-        if int(threat_score) == int(self.prev_score):
-            return
+        # if abs(threat_score - self.prev_score) < 0.1:
+        #    return
 
         with sqlite3.connect("data.db") as conn: # type: sqlite3.Connection
-            conn.execute(f"INSERT INTO threats VALUES (?, ?, ?, ?, ?)", (int(time.time()), None, None, int(self.prev_score), int(threat_score)))
+            conn.execute(f"INSERT INTO threats VALUES (?, ?, ?, ?, ?)", (round(time.time(), 3), None, None, round(self.prev_score, 1), round(threat_score, 1)))
 
         self.prev_score = threat_score

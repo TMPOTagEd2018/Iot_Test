@@ -17,10 +17,10 @@ from rx import Observable
 
 from typing import Dict
 
-monitors: Dict[str, monitor.Monitor]  = {
-    "door/contact": monitor.contact.ContactMonitor(1),
-    "door/imu": monitor.imu.ImuMonitor(1),
-    "box/imu": monitor.imu.ImuMonitor(2),
+monitors: Dict[str, monitor.Monitor] = {
+    # "door/contact": monitor.contact.ContactMonitor(1),
+    # "door/imu": monitor.imu.ImuMonitor(1),
+    "box/imu": monitor.imu.ImuMonitor(1),
     "box/contact": monitor.contact.ContactMonitor(1),
     # "door/heartbeat": monitor.heartbeat.HeartbeatMonitor(1),
     # "room/heartbeat": monitor.heartbeat.HeartbeatMonitor(2),
@@ -34,6 +34,8 @@ processor = ThreatProcessor(threats, 5)
 # monitors["door/heartbeat"].input(0)
 
 # The callback for when the client receives a CONNACK response from the server.
+
+
 def on_connect(client, userdata, flags, rc):
     print("Connected with result code "+str(rc))
 
@@ -57,19 +59,22 @@ def on_connect(client, userdata, flags, rc):
     client.subscribe("box/heartbeat")
     client.subscribe("box/key")
 
+
 keys = {}
 dh = keyex.DiffieHellman()
 
 # The callback for when a PUBLISH message is received from the server.
+
+
 def on_message(client: mqtt.Client, userdata, msg: mqtt.MQTTMessage):
     node_name, sensor_name = path.split(msg.topic)
 
     if sensor_name == "key":
         they_pk = msg.payload
 
-        client.publish(msg.topic, payload=dh.gen_public_key(), qos=1)
+        client.publish(msg.topic, qos=1)
 
-        sk = dh.gen_shared_key(they_pk)
+        #sk = dh.gen_shared_key(they_pk)
         seed = int(sk, 16)
 
         keys[node_name] = sk
@@ -77,10 +82,9 @@ def on_message(client: mqtt.Client, userdata, msg: mqtt.MQTTMessage):
         # TODO: decode msg.payload using keys[node_name]
         monitors[msg.topic].input(msg.payload.decode())
     else:
-        if msg.topic == "box/imu":
-            print("ree", msg.payload.decode())
         monitors[msg.topic].input(msg.payload.decode())
-        
+
+
 client = mqtt.Client()
 client.on_connect = on_connect
 client.on_message = on_message

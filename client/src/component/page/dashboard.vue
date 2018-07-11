@@ -1,6 +1,8 @@
 <template>
     <div class="container">
-        <live-chart :data="[3, 4, 3]" ref="threatChart" />
+        <div style="height: 100pt" >
+            <live-chart ref="threatChart" />
+        </div>
 
         <div class="alert alert-danger" v-if="threatLevel < threatLevelMax">
             Activity was detected earlier.
@@ -53,105 +55,156 @@ import LiveChart from "@control/live-chart.vue";
 import { setInterval } from "timers";
 
 enum SensorType {
-  Contact = "Contact Sensor",
-  Accelerometer = "Accelerometer",
-  Imu = "Inertial Measurement Sensor",
-  Lux = "Lux Sensor",
-  Microphone = "Microphone", 
-  PIR = "Passive Infrared Sensor"
+    Contact = "Contact Sensor",
+    Accelerometer = "Accelerometer",
+    Imu = "Inertial Measurement Sensor",
+    Lux = "Lux Sensor",
+    Microphone = "Microphone",
+    PIR = "Passive Infrared Sensor"
 }
 
-type ThreatData = { timestamp: number, node: string | null, threat: string | null, old_level: number, new_level: number };
+type ThreatData = {
+    timestamp: number;
+    node: string | null;
+    threat: string | null;
+    old_level: number;
+    new_level: number;
+};
 
 class Sensor {
-  // Display name
-  public name: string;
+    // Display name
+    public name: string;
 
-  // Internal name
-  public sensorName: string;
+    // Internal name
+    public sensorName: string;
 
-  public threatLevel: number = 0;
-  public value: number = 0;
-  public type: SensorType;
+    public threatLevel: number = 0;
+    public value: number = 0;
+    public type: SensorType;
 
-  constructor(name: string, sensorName: string, type: SensorType) {
-    this.name = name;
-    this.type = type;
-    this.sensorName = sensorName;
-  }
+    constructor(name: string, sensorName: string, type: SensorType) {
+        this.name = name;
+        this.type = type;
+        this.sensorName = sensorName;
+    }
 
-  public async update(node: Node) {
-    const response = await axios.get(`/api/sensor/${node.nodeName}/${this.sensorName}/`);
-    this.value = response.data;
-  }
+    public async update(node: Node) {
+        const response = await axios.get(
+            `/api/sensor/${node.nodeName}/${this.sensorName}/`
+        );
+        this.value = response.data;
+    }
 }
 
 class Node {
-  // Display name
-  public name: string;
+    // Display name
+    public name: string;
 
-  // Internal name
-  public nodeName: string;
+    // Internal name
+    public nodeName: string;
 
-  public sensors: Sensor[] = [];
+    public sensors: Sensor[] = [];
 
-  constructor(name: string, nodeName: string) {
-    this.name = name;
-    this.nodeName = nodeName;
-  }
+    constructor(name: string, nodeName: string) {
+        this.name = name;
+        this.nodeName = nodeName;
+    }
 
-  public async update() {
-    this.sensors.forEach(s => s.update(this));
-  }
+    public async update() {
+        this.sensors.forEach(s => s.update(this));
+    }
 }
 
-@vue.Component({ components: { LiveChart }})
+const window = 1000 * 60 * 1; // 1 minutes
+
+@vue.Component({ components: { LiveChart } })
 export default class Dashboard extends Vue {
-  public nodes: Node[] = [];
-  public threatLevel: number = 0;
-  public threatLevelMax: number = 0;
+    public nodes: Node[] = [];
+    public threatLevel: number = 0;
+    public threatLevelMax: number = 0;
 
-  @vue.Lifecycle
-  public created() {
-    // this is a simple project, so let's hard code the nodes
+    private lastUpdate: number = 0;
 
-    const room = new Node("Room", "room"),
-      box = new Node("Box", "box"),
-      door = new Node("Door", "door");
+    @vue.Lifecycle
+    public created() {
+        // this is a simple project, so let's hard code the nodes
 
-    room.sensors = [
-      new Sensor("Microphone 1", "mic", SensorType.Microphone), 
-      new Sensor("Light 1", "lux", SensorType.Lux)
-    ];
+        const room = new Node("Room", "room"),
+            box = new Node("Box", "box"),
+            door = new Node("Door", "door");
 
-    box.sensors = [
-      new Sensor("IMU 1", "imu", SensorType.Imu), 
-      new Sensor("Contact 1", "contact", SensorType.Contact)
-    ];
-    
-    door.sensors = [
-      new Sensor("IMU 1", "imu", SensorType.Accelerometer), 
-      new Sensor("Contact 1", "contact", SensorType.Contact)
-    ];
+        room.sensors = [
+            new Sensor("Microphone 1", "mic", SensorType.Microphone),
+            new Sensor("Light 1", "lux", SensorType.Lux)
+        ];
 
-    this.nodes.push(room, box, door);
+        box.sensors = [
+            new Sensor("IMU 1", "imu", SensorType.Imu),
+            new Sensor("Contact 1", "contact", SensorType.Contact)
+        ];
 
-    setInterval(async () => {
-      this.nodes.forEach(n => n.update());
+        door.sensors = [
+            new Sensor("IMU 1", "imu", SensorType.Accelerometer),
+            new Sensor("Contact 1", "contact", SensorType.Contact)
+        ];
 
-      const time = (+new Date()) / 1000;
-      
-      const res = await axios.get(`/api/threat/since:${Math.floor(time) - 3600}/limit:1000`);
-      const data: ThreatData[] = res.data;
+        this.nodes.push(room, box, door);
 
-      this.threatLevel = data[0].new_level;
-      this.threatLevelMax = Math.max(this.threatLevel, this.threatLevelMax);
+        setInterval(this.shift, 200);
+        setInterval(this.update, 1000);
+    }
 
-      const chart: any = this.$refs.threatChart as LiveChart;
-      
-      chart.data = data.map(d => { return { label: d.timestamp.toString(), value: d.new_level }});
-    }, 1000);
-  }
+    @vue.Lifecycle
+    public mounted() {
+        const chart: any = this.$refs.threatChart as LiveChart;
+
+        chart.label = "Threats";
+        chart.max = 10;
+    }
+
+    public async shift() {
+        const time = +new Date();
+        const chart: any = this.$refs.threatChart as LiveChart;
+        chart.xrange = { min: time - window, max: time };
+        chart.update();
+    }
+
+    public async update() {
+        this.nodes.forEach(n => n.update());
+
+        {
+            const res = await axios.get("/api/threat/");
+            const data: ThreatData[] = res.data;
+            this.threatLevel = data[0].new_level;
+            this.threatLevelMax = Math.max(this.threatLevel, this.threatLevelMax);
+        }
+
+        {
+            const time = +new Date() / 1000;
+
+            const res = await axios.get(
+                `/api/threat/since:${Math.floor(Math.max(this.lastUpdate, time - window / 1000))}/limit:200`
+            );
+            
+            let data: ThreatData[] = res.data;
+
+            const chart: any = this.$refs.threatChart as LiveChart;
+
+            if(data.length === 0) return;
+
+            let points = data
+                .filter(d => d.timestamp > this.lastUpdate)
+                .map(d => { return { x: new Date(d.timestamp * 1000), y: d.new_level }; })
+                .sort((a, b) => a.x < b.x ? -1 : 1);
+
+            chart.push(...points);
+
+            do chart.shift();
+            while(chart.data.length > 0 && chart.data[0].x < time * 1000 - window * 1.5)
+
+            this.lastUpdate = time;
+        }
+    }
 }
 </script>
 
