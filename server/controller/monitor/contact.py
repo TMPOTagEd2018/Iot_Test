@@ -1,14 +1,10 @@
-from rx import Observable, Observer
-from rx.core import ObservableBase
-from rx.subjects import Subject
-from rx.linq.observable import window
-
 import numpy as np
 
 from . import Monitor
 
+
 class ContactMonitor(Monitor):
-    def __init__(self, sensitivity = 1):
+    def __init__(self, sensitivity=1):
         super().__init__()
 
         self.sensitivity = sensitivity
@@ -32,5 +28,3 @@ class ContactMonitor(Monitor):
             self.threats.on_next(4 * self.sensitivity)
         else:
             self.threats.on_next(0)
-
-            

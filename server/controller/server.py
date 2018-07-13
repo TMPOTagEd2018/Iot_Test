@@ -21,8 +21,6 @@ import time
 
 import os.path as path
 
-from rx import Observable
-
 from typing import Dict
 
 monitors: Dict[str, monitor.Monitor] = {
@@ -35,6 +33,7 @@ monitors: Dict[str, monitor.Monitor] = {
 }
 
 processor = ThreatProcessor(list(map(lambda m: m.threats, monitors.values())), 5)
+
 
 # The callback for when the client receives a CONNACK response from the server.
 def on_connect(client, userdata, flags, rc):
@@ -66,7 +65,7 @@ dh = keyex.DiffieHellman()
 
 # The callback for when a PUBLISH message is received from the server.
 
-conn = sqlite3.connect("..\\data.db") # type: sqlite3.Connection
+conn = sqlite3.connect("..\\data.db")  # type: sqlite3.Connection
 
 
 def on_message(client: mqtt.Client, userdata, msg: mqtt.MQTTMessage):
@@ -83,7 +82,7 @@ def on_message(client: mqtt.Client, userdata, msg: mqtt.MQTTMessage):
         random.seed(seed)
 
         rngs[node_name] = random.getstate()
-        montiors[node_name] = monitor.heartbeat.HeartbeatMonitor()
+        monitors[node_name] = monitor.heartbeat.HeartbeatMonitor()
         return
 
     if node_name not in rngs:
@@ -96,11 +95,11 @@ def on_message(client: mqtt.Client, userdata, msg: mqtt.MQTTMessage):
         heartbeat = int(msg.payload.decode())
 
         if check != heartbeat:
-            continue
+            return
 
         monitors[msg.topic].input(heartbeat)
 
-    else if msg.topic in monitors:
+    elif msg.topic in monitors:
         value = msg.payload.decode()
         monitors[msg.topic].input(value)
 
