@@ -1,41 +1,42 @@
 #!/usr/bin/python3
 
+# MQTT
 import paho.mqtt.client as mqtt
 
+# Monitors
 import monitor
 import monitor.imu
 import monitor.contact
 import monitor.heartbeat
 
+from processor import ThreatProcessor
+
+# Key exchange and verification
 import keyex
+import random
+
+# Data
+import sqlite3
+import time
 
 import os.path as path
-
-from processor import ThreatProcessor
 
 from rx import Observable
 
 from typing import Dict
 
 monitors: Dict[str, monitor.Monitor] = {
-    # "door/contact": monitor.contact.ContactMonitor(1),
-    # "door/imu": monitor.imu.ImuMonitor(1),
+    "door/imu": monitor.imu.ImuMonitor(1),
+    "door/contact": monitor.contact.ContactMonitor(1),
+    "door/heartbeat": monitor.heartbeat.HeartbeatMonitor(1),
     "box/imu": monitor.imu.ImuMonitor(1),
     "box/contact": monitor.contact.ContactMonitor(1),
-    # "door/heartbeat": monitor.heartbeat.HeartbeatMonitor(1),
-    # "room/heartbeat": monitor.heartbeat.HeartbeatMonitor(2),
-    # "box/heartbeat": monitor.heartbeat.HeartbeatMonitor(3)
+    "box/heartbeat": monitor.heartbeat.HeartbeatMonitor(1)
 }
 
-threats = Observable.merge(*map(lambda m: m.threats, monitors.values()))
-
-processor = ThreatProcessor(threats, 5)
-
-# monitors["door/heartbeat"].input(0)
+processor = ThreatProcessor(list(map(lambda m: m.threats, monitors.values())), 5)
 
 # The callback for when the client receives a CONNACK response from the server.
-
-
 def on_connect(client, userdata, flags, rc):
     print("Connected with result code "+str(rc))
 
@@ -60,10 +61,12 @@ def on_connect(client, userdata, flags, rc):
     client.subscribe("box/key")
 
 
-keys = {}
+rngs = {}
 dh = keyex.DiffieHellman()
 
 # The callback for when a PUBLISH message is received from the server.
+
+conn = sqlite3.connect("..\\data.db") # type: sqlite3.Connection
 
 
 def on_message(client: mqtt.Client, userdata, msg: mqtt.MQTTMessage):
@@ -74,15 +77,34 @@ def on_message(client: mqtt.Client, userdata, msg: mqtt.MQTTMessage):
 
         client.publish(msg.topic, qos=1)
 
-        #sk = dh.gen_shared_key(they_pk)
+        sk = dh.gen_shared_key(they_pk)
         seed = int(sk, 16)
 
-        keys[node_name] = sk
-    elif sensor_name == "heartbeat":
-        # TODO: decode msg.payload using keys[node_name]
-        monitors[msg.topic].input(msg.payload.decode())
-    else:
-        monitors[msg.topic].input(msg.payload.decode())
+        random.seed(seed)
+
+        keys[node_name] = random.getstate()
+        montiors[node_name] = monitor.heartbeat.HeartbeatMonitor()
+        return
+
+    if node_name not in keys:
+        return
+
+    if sensor_name == "heartbeat":
+        random.setstate(keys[node_name])
+
+        check = random.getrandbits(32)
+        heartbeat = int(msg.payload.decode())
+
+        if check != heartbeat:
+            continue
+
+        monitors[msg.topic].input(heartbeat)
+
+    else if msg.topic in monitors:
+        value = msg.payload.decode()
+        monitors[msg.topic].input(value)
+
+        conn.execute("INSERT INTO sensor_data VALUES (?, ?, ?, ?)", (round(time.time(), 3), value, node_name, sensor_name))
 
 
 client = mqtt.Client()

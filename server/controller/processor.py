@@ -16,7 +16,7 @@ class ThreatProcessor:
     def __init__(self, threats, sensitivity):
         self.threats = threats
         self.sensitivity = sensitivity
-        self.query = self.threats.buffer_with_count(sensitivity, sensitivity - 1)
+        self.query = self.threats.combine_latest(lambda *data: data)
         self.subscription = self.query.subscribe(self.on_threat)
 
     def on_threat(self, buffer: [int]):

@@ -10,14 +10,14 @@ import * as vue from "av-ts";
 import Vue from "vue";
 import { Chart, ChartPoint } from "chart.js";
 
-type Range = { min: number; max: number; };
+type Range = { min?: number; max?: number; };
 
 @vue.Component
 export default class LiveChart extends Vue {
     public data: ChartPoint[] = [];
     public label?: string;
-    public yrange: Range = { min: 0, max: 10};
-    public xrange: Range = { min: 0, max: 10};
+    public yrange: Range = { min: 0, max: 10 };
+    public xrange: Range = { min: 0, max: 10 };
 
     private chart!: Chart;
 
@@ -111,13 +111,16 @@ export default class LiveChart extends Vue {
                                 maxTicksLimit: 1,
                                 callback (value) {
                                     return moment(value).fromNow();
-                                }
+                                },
+                                maxRotation: 0,
+                                minRotation: 0,
+                                ... this.xrange
                             }
                         }
                     ],
                     yAxes: [
                         {
-                            ticks: { suggestedMin: this.min, suggestedMax: this.max } as any
+                            ticks: { ...this.yrange }
                         }
                     ]
                 }
@@ -139,7 +142,6 @@ export default class LiveChart extends Vue {
                     for (const datum of data) {
                         (set.data as ChartPoint[]).push(datum);
                     }
-
                 }
             }
         }

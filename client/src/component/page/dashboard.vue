@@ -89,9 +89,7 @@ class Sensor {
     }
 
     public async update(node: Node) {
-        const response = await axios.get(
-            `/api/sensor/${node.nodeName}/${this.sensorName}/`
-        );
+        const response = await axios.get(`/api/sensor/${node.nodeName}/${this.sensorName}/`);
         this.value = response.data;
     }
 }
