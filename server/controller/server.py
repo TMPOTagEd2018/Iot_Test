@@ -82,15 +82,15 @@ def on_message(client: mqtt.Client, userdata, msg: mqtt.MQTTMessage):
 
         random.seed(seed)
 
-        keys[node_name] = random.getstate()
+        rngs[node_name] = random.getstate()
         montiors[node_name] = monitor.heartbeat.HeartbeatMonitor()
         return
 
-    if node_name not in keys:
+    if node_name not in rngs:
         return
 
     if sensor_name == "heartbeat":
-        random.setstate(keys[node_name])
+        random.setstate(rngs[node_name])
 
         check = random.getrandbits(32)
         heartbeat = int(msg.payload.decode())
