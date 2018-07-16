@@ -16,7 +16,7 @@ class ThreatProcessor:
     def __init__(self, threats: Observable, sensitivity):
         self.threats = threats
         self.sensitivity = sensitivity
-        self.query = self.threats.combine_latest(lambda *data: data)
+        self.query = Observable.combine_latest(threats, lambda *data: data)
         self.subscription: Disposable = self.query.subscribe(self.on_threat)
 
     def on_threat(self, buffer: [int]):

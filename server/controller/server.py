@@ -13,11 +13,9 @@ from processor import ThreatProcessor
 
 # Key exchange and verification
 import keyex
-import random
 
 # Data
 import sqlite3
-import time
 
 import os.path as path
 
@@ -26,10 +24,8 @@ from typing import Dict
 monitors: Dict[str, monitor.Monitor] = {
     "door/imu": monitor.imu.ImuMonitor(1),
     "door/contact": monitor.contact.ContactMonitor(1),
-    "door/heartbeat": monitor.heartbeat.HeartbeatMonitor(1),
     "box/imu": monitor.imu.ImuMonitor(1),
-    "box/contact": monitor.contact.ContactMonitor(1),
-    "box/heartbeat": monitor.heartbeat.HeartbeatMonitor(1)
+    "box/contact": monitor.contact.ContactMonitor(1)
 }
 
 processor = ThreatProcessor(list(map(lambda m: m.threats, monitors.values())), 5)
@@ -62,55 +58,45 @@ def on_connect(client, userdata, flags, rc):
 
 rngs = {}
 dh = keyex.DiffieHellman()
+private_key, public_key = dh.get_private_key(), dh.gen_public_key()
+
 
 # The callback for when a PUBLISH message is received from the server.
 
-conn = sqlite3.connect("..\\data.db")  # type: sqlite3.Connection
+base_dir = path.join(path.dirname(__file__), "..")
+
+conn = sqlite3.connect(path.join(base_dir, "data.db"))  # type: sqlite3.Connection
+
+print(f"Server initialising, public key {public_key}")
 
 
 def on_message(client: mqtt.Client, userdata, msg: mqtt.MQTTMessage):
     node_name, sensor_name = path.split(msg.topic)
 
     if sensor_name == "key":
-        they_pk = msg.payload
+        they_pk = msg.payload.decode()
 
-        client.publish(msg.topic, qos=1)
+        client.publish("server/key", payload=public_key, qos=1, retain=False)
 
-        sk = dh.gen_shared_key(they_pk)
-        seed = int(sk, 16)
+        sk = dh.gen_shared_key(int(they_pk))
 
-        random.seed(seed)
-
-        rngs[node_name] = random.getstate()
-        monitors[node_name] = monitor.heartbeat.HeartbeatMonitor()
+        print(f"Key exchange completed with {node_name} node, shared key {sk}")
+        monitors[node_name + "/heartbeat"] = monitor.heartbeat.HeartbeatMonitor(sk)
         return
 
-    if node_name not in rngs:
-        return
-
-    if sensor_name == "heartbeat":
-        random.setstate(rngs[node_name])
-
-        check = random.getrandbits(32)
-        heartbeat = int(msg.payload.decode())
-
-        if check != heartbeat:
-            return
-
-        monitors[msg.topic].input(heartbeat)
-
-    elif msg.topic in monitors:
+    if msg.topic in monitors:
         value = msg.payload.decode()
         monitors[msg.topic].input(value)
 
-        conn.execute("INSERT INTO sensor_data VALUES (?, ?, ?, ?)", (round(time.time(), 3), value, node_name, sensor_name))
+        # conn.execute("INSERT INTO sensor_data VALUES (?, ?, ?, ?)", (round(time.time(), 3), value, node_name, sensor_name))
 
 
 client = mqtt.Client()
 client.on_connect = on_connect
 client.on_message = on_message
+client.tls_set(path.join(base_dir, "certs/ca.crt"))
 
-client.connect("10.90.12.213", 1883, 60)
+client.connect("10.90.12.213", 8883, 60)
 
 # Blocking call that processes network traffic, dispatches callbacks and
 # handles reconnecting.
