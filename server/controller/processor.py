@@ -10,7 +10,7 @@ import numpy as np
 class ThreatProcessor:
     prev_score: float = 0
 
-    def __init__(self, threats: Observable, sensitivity):
+    def __init__(self, threats: [Observable], sensitivity: float):
         self.threats = threats
         self.sensitivity = sensitivity
         self.query = Observable.combine_latest(threats, lambda *data: data)
