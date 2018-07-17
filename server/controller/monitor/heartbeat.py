@@ -20,10 +20,15 @@ class HeartbeatMonitor(Monitor):
         self.sensitivity = sensitivity
 
     def input(self, value):
+        if value == -1:
+            # sensor failure! do nothing, for now
+            return
+
         random.setstate(self.rng)
         check = random.getrandbits(32)
         if check != int(value):
             return
+            
         self.rng = random.getstate()
 
         self.threats.on_next(0)

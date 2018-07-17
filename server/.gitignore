@@ -38,7 +38,8 @@ Thumbs.db
 
 **/__pycache__/
 **/.pytest_cache/
-**/.vscode/
 **/certs/
 **/*.db
 **/*.exe
+.vscode/
+cache/
