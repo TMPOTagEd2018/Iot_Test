@@ -6,9 +6,6 @@ import time
 
 import numpy as np
 
-import colorama as cr
-cr.init(autoreset=True)
-
 
 class ThreatProcessor:
     prev_score: float = 0
@@ -35,6 +32,7 @@ class ThreatProcessor:
             t = round(time.time(), 3)
             ps = round(self.prev_score, 1)
             ts = round(threat_score, 1)
-            conn.execute(f"INSERT INTO threats VALUES ({t}, NULL, NULL, {ps}, {ts})")
+            conn.execute(
+                f"INSERT INTO threats VALUES ({t}, NULL, NULL, {ps}, {ts})")
 
         self.prev_score = threat_score
