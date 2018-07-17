@@ -10,9 +10,9 @@ import numpy as np
 class ThreatProcessor:
     prev_score: float = 0
 
-    def __init__(self, threats: [Observable], sensitivity: float):
+    def __init__(self, threats: [Observable], conn: sqlite3.Connection):
         self.threats = threats
-        self.sensitivity = sensitivity
+        self.conn = conn
         self.query = Observable.combine_latest(threats, lambda *data: data)
         self.subscription: Disposable = self.query.subscribe(self.on_threat)
 
@@ -28,11 +28,10 @@ class ThreatProcessor:
         # if abs(threat_score - self.prev_score) < 0.1:
         #    return
 
-        with sqlite3.connect("data.db") as conn:  # type: sqlite3.Connection
-            t = round(time.time(), 3)
-            ps = round(self.prev_score, 1)
-            ts = round(threat_score, 1)
-            conn.execute(
-                f"INSERT INTO threats VALUES ({t}, NULL, NULL, {ps}, {ts})")
+        t = round(time.time(), 3)
+        ps = round(self.prev_score, 1)
+        ts = round(threat_score, 1)
+        self.conn.execute(f"INSERT INTO threats VALUES ({t}, NULL, NULL, {ps}, {ts})")
+        self.conn.commit()
 
         self.prev_score = threat_score

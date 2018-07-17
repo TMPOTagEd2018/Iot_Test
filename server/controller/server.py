@@ -32,7 +32,13 @@ monitors: Dict[str, monitor.Monitor] = {
     "box/contact": monitor.contact.ContactMonitor(1)
 }
 
-processor = ThreatProcessor(list(map(lambda m: m.threats, monitors.values())), 5)
+base_dir = path.dirname(path.dirname(__file__))
+
+print(f"Base dir: {base_dir}")
+
+conn = sqlite3.connect(path.join(base_dir, "data.db"))  # type: sqlite3.Connection
+
+processor = ThreatProcessor(list(map(lambda m: m.threats, monitors.values())), conn)
 
 
 # The callback for when the client receives a CONNACK response from the server.
@@ -64,12 +70,6 @@ rngs = {}
 dh = keyex.DiffieHellman()
 private_key, public_key = dh.get_private_key(), dh.gen_public_key()
 
-
-# The callback for when a PUBLISH message is received from the server.
-
-base_dir = path.dirname(path.dirname(__file__))
-
-conn = sqlite3.connect(path.join(base_dir, "data.db"))  # type: sqlite3.Connection
 
 print(f"Server initialising, public key {public_key}")
 
