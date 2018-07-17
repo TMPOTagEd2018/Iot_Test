@@ -42,7 +42,8 @@ def get_sensor_data(node, sensor, since_time=None, limit=500):
             while current_position != position:
                 record_bytes = cache_file.read(RECORD_SIZE)
                 if len(record_bytes) < RECORD_SIZE:
-                    app.logger.warning(f"not enough bytes ({len(record_bytes)}) at {current_position}")
+                    app.logger.warning(
+                        f"not enough bytes ({len(record_bytes)}) at {current_position}")
                     break
 
                 current_position = current_position + 1
@@ -53,7 +54,7 @@ def get_sensor_data(node, sensor, since_time=None, limit=500):
                 timestamp, value = struct.unpack("db", record_bytes)
                 if timestamp == 0:
                     continue
-                    
+
                 yield {"timestamp": timestamp, "value": value}
 
         return list(reversed(list(read_records())))
@@ -107,28 +108,29 @@ class Threat(rest.Resource):
 api = rest.Api(app)
 
 api.add_resource(Node,
-                    "/api/sensor/<string:node>/<string:sensor>/",
-                    "/api/sensor/<string:node>/<string:sensor>/limit:<int:limit>",
-                    "/api/sensor/<string:node>/<string:sensor>/since:<int:time>",
-                    "/api/sensor/<string:node>/<string:sensor>/since:<int:time>/limit:<int:limit>")
+                 "/api/sensor/<string:node>/<string:sensor>/",
+                 "/api/sensor/<string:node>/<string:sensor>/limit:<int:limit>",
+                 "/api/sensor/<string:node>/<string:sensor>/since:<int:time>",
+                 "/api/sensor/<string:node>/<string:sensor>/since:<int:time>/limit:<int:limit>")
 
 api.add_resource(Threat,
-                    "/api/threat/",
-                    "/api/threat/limit:<int:limit>",
-                    "/api/threat/since:<int:time>",
-                    "/api/threat/since:<int:time>/limit:<int:limit>",
-                    "/api/threat/minlevel:<int:min_level>/limit:<int:limit>",
-                    "/api/threat/<string:node>/<string:threat>/",
-                    "/api/threat/<string:node>/<string:threat>/limit:<int:limit>",
-                    "/api/threat/<string:node>/<string:threat>/minlevel:<int:min_level>/",
-                    "/api/threat/<string:node>/<string:threat>/minlevel:<int:min_level>/limit:<int:limit>",
-                    "/api/threat/<string:node>/<string:threat>/since:<int:time>",
-                    "/api/threat/<string:node>/<string:threat>/since:<int:time>/limit:<int:limit>",
-                    "/api/threat/<string:node>/<string:threat>/since:<int:time>/minlevel:<int:min_level>/",
-                    "/api/threat/<string:node>/<string:threat>/since:<int:time>/minlevel:<int:min_level>/limit:<int:limit>")
+                 "/api/threat/",
+                 "/api/threat/limit:<int:limit>",
+                 "/api/threat/since:<int:time>",
+                 "/api/threat/since:<int:time>/limit:<int:limit>",
+                 "/api/threat/minlevel:<int:min_level>/limit:<int:limit>",
+                 "/api/threat/<string:node>/<string:threat>/",
+                 "/api/threat/<string:node>/<string:threat>/limit:<int:limit>",
+                 "/api/threat/<string:node>/<string:threat>/minlevel:<int:min_level>/",
+                 "/api/threat/<string:node>/<string:threat>/minlevel:<int:min_level>/limit:<int:limit>",
+                 "/api/threat/<string:node>/<string:threat>/since:<int:time>",
+                 "/api/threat/<string:node>/<string:threat>/since:<int:time>/limit:<int:limit>",
+                 "/api/threat/<string:node>/<string:threat>/since:<int:time>/minlevel:<int:min_level>/",
+                 "/api/threat/<string:node>/<string:threat>/since:<int:time>/minlevel:<int:min_level>/limit:<int:limit>")
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", ssl_context=("certs/http/cert.pem", "certs/http/key.pem"))
+    app.run(host="0.0.0.0", ssl_context=(
+        "certs/http/cert.pem", "certs/http/key.pem"))
 
 #    host='0.0.0.0', port=80, debug=False
