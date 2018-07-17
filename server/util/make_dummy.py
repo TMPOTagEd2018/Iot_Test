@@ -34,6 +34,7 @@ with sqlite3.connect(path) as conn:  # type: sqlite3.Connection
     try:
         if input("Delete existing threats table? (yes/NO): ").lower() == "yes":
             conn.execute("DROP TABLE threats")
+            print("Threats table deleted.")
 
         conn.execute(r"""
         CREATE TABLE threats (
@@ -44,6 +45,7 @@ with sqlite3.connect(path) as conn:  # type: sqlite3.Connection
             new_level NUMERIC NOT NULL
         );
         """)
+
         print("Threats table created.")
 
     except sqlite3.OperationalError:
@@ -55,3 +57,5 @@ with sqlite3.connect(path) as conn:  # type: sqlite3.Connection
         for i in range(20):
             conn.execute(
                 f"INSERT INTO threats VALUES ({time.time()}, null, null, {random.randint(0, 10)}, {random.randint(0, 10)})")
+
+    conn.commit()
