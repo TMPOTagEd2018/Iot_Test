@@ -38,7 +38,7 @@ print(f"Base dir: {base_dir}")
 
 conn = sqlite3.connect(path.join(base_dir, "data.db"))  # type: sqlite3.Connection
 
-processor = ThreatProcessor(list(map(lambda m: m.threats, monitors.values())), conn)
+processor = ThreatProcessor(list(map(lambda m: m.threats, monitors.values())), conn, 5)
 
 
 # The callback for when the client receives a CONNACK response from the server.
