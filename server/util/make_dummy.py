@@ -2,7 +2,7 @@ import sqlite3
 import os
 import time
 import random
-from os.path import join, realpath, dirname
+from os.path import join, abspath, dirname
 
 
 def touch(fname, times=None):
@@ -10,7 +10,8 @@ def touch(fname, times=None):
         os.utime(fname, times)
 
 
-path = join(dirname(realpath(__file__)), '..\\data.db')
+base_dir = dirname(dirname(abspath(__file__)))
+path = join(base_dir, 'data.db')
 
 touch(path)
 
