@@ -1,3 +1,5 @@
+#!/usr/local/bin/python3.6
+
 from flask import Flask
 import flask_restful as rest
 
@@ -127,6 +129,6 @@ api.add_resource(Threat,
 
 
 if __name__ == "__main__":
-    app.run(debug=True, ssl_context=("certs/http/cert.pem", "certs/http/key.pem"))
+    app.run(host="0.0.0.0", ssl_context=("certs/http/cert.pem", "certs/http/key.pem"))
 
 #    host='0.0.0.0', port=80, debug=False
