@@ -127,6 +127,6 @@ api.add_resource(Threat,
 
 
 if __name__ == "__main__":
-    app.run(debug=True, ssl_context=("certs/http/cert.pem", "certs/http/key.pem"))
+    app.run(ssl_context=("certs/http/cert.pem", "certs/http/key.pem"))
 
 #    host='0.0.0.0', port=80, debug=False
