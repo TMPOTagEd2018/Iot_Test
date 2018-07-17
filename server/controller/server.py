@@ -32,13 +32,17 @@ monitors: Dict[str, monitor.Monitor] = {
     "box/contact": monitor.contact.ContactMonitor(1)
 }
 
-base_dir = path.dirname(path.dirname(__file__))
+base_dir = path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 print(f"Base dir: {base_dir}")
 
-conn = sqlite3.connect(path.join(base_dir, "data.db"))  # type: sqlite3.Connection
+db_path = path.join(base_dir, "data.db")
 
-processor = ThreatProcessor(list(map(lambda m: m.threats, monitors.values())), conn)
+print(f"DB path: {db_path}")
+
+conn = sqlite3.connect(db_path)  # type: sqlite3.Connection
+
+processor = ThreatProcessor(list(map(lambda m: m.threats, monitors.values())), conn, 5)
 
 
 # The callback for when the client receives a CONNACK response from the server.
