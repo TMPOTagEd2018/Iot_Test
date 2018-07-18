@@ -109,7 +109,7 @@ def write_cache(node_name: str, sensor_name: str, value: int):
         cache_file.seek(file_position, 0)
         cache_file.write(struct.pack("db", timestamp, value))
 
-        position = position + 1
+        position = (position + 1) % RECORD_COUNT
         position_bytes = struct.pack("L", position)
 
         cache_file.seek(0, 0)
