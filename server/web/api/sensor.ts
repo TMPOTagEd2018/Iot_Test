@@ -1,22 +1,34 @@
 import * as Koa from "koa";
 import * as KoaRouter from "koa-router";
+import * as winston from "winston";
 import * as fs from "fs-extra";
 import * as path from "path";
 
-export default (basePath: string) => {
+export default (logger: winston.Logger, basePath: string) => {
     async function handler(ctx: Koa.Context) {
+        let checkpoint = 0;
+
         const POINTER_SIZE = 4;
         const RECORD_SIZE = 9;
         const RECORD_COUNT = 2400;
-        
+
         const limit = Math.min(RECORD_COUNT, ctx.params.limit || 1);
         const { since, node, sensor } = ctx.params;
+
+        checkpoint = 1;
+
+        const timer = setTimeout(() => {
+            logger.warn(`Reading sensor data on ${node}/${sensor} timed out. Checkpoint: ${checkpoint}`);
+        }, 3000);
 
         const fn = path.join(basePath, "cache", node, sensor);
         if (!await fs.pathExists(fn)) {
             ctx.response.status = 404;
+            clearTimeout(timer);
             return;
         }
+
+        checkpoint = 2;
 
         const handle = await fs.open(fn, "r");
         const buf = Buffer.alloc(RECORD_SIZE);
@@ -24,19 +36,27 @@ export default (basePath: string) => {
         const position = buf.readInt32LE(0);
         const start = (position - limit + RECORD_COUNT) % RECORD_COUNT;
         const records = [];
-        
-        for(let current = start; current != position; current = (current + 1) % RECORD_SIZE) {
+
+        checkpoint = 3;
+
+        for (let current = start; current != position; current = (current + 1) % RECORD_SIZE) {
             await fs.read(handle, buf, 0, RECORD_SIZE, POINTER_SIZE + current * RECORD_SIZE);
             const timestamp = buf.readDoubleLE(0);
             const value = buf[8];
 
-            if(timestamp === 0) continue;
-            if(since && timestamp < since) continue;
+            if (timestamp === 0) continue;
+            if (since && timestamp < since) continue;
 
             records.unshift({ timestamp, value });
         }
 
+        checkpoint = 4;
+
         await fs.close(handle);
+
+        checkpoint = 5;
+
+        clearTimeout(timer);
 
         ctx.response.body = records;
     }
