@@ -7,7 +7,7 @@ import * as path from "path";
 export default (logger: winston.Logger, basePath: string) => {
     async function handler(ctx: Koa.Context) {
         let checkpoint = 0;
-        let position, current;
+        let position = 0, current = 0, cycles = 0, start = 0;
 
         const POINTER_SIZE = 4;
         const RECORD_SIZE = 9;
@@ -16,37 +16,23 @@ export default (logger: winston.Logger, basePath: string) => {
         const limit = Math.min(RECORD_COUNT, ctx.params.limit || 1);
         const { since, node, sensor } = ctx.params;
 
-        checkpoint = 1;
-
-        const timer = setTimeout(() => {
-            logger.warning(
-                `Reading sensor data on ${node}/${sensor} timed out. ` +
-                `Checkpoint: ${checkpoint}, position: ${position}, current: ${current}`);
-        }, 5000);
-
         const fn = path.join(basePath, "cache", node, sensor);
         if (!await fs.pathExists(fn)) {
             ctx.response.status = 404;
-            clearTimeout(timer);
             return;
         }
-
-        checkpoint = 2;
 
         const handle = await fs.open(fn, "r");
         const buf = Buffer.alloc(RECORD_SIZE);
         await fs.read(handle, buf, 0, POINTER_SIZE, 0);
         position = buf.readInt32LE(0);
-        const start = (position - limit + RECORD_COUNT) % RECORD_COUNT;
+        start = (position - limit + RECORD_COUNT) % RECORD_COUNT;
         const records = [];
 
-        checkpoint = 3;
+        current = start;
 
-        for (current = start; current != position; current++) {
+        while (current != position) {
             const result = await fs.read(handle, buf, 0, RECORD_SIZE, POINTER_SIZE + current * RECORD_SIZE);
-
-            checkpoint = 4;
-
             if (result.bytesRead !== RECORD_SIZE) {
                 logger.warning(`Reading sensor data on ${node}/${sensor} read only ${result.bytesRead} bytes, expecting ${RECORD_SIZE}`);
             }
@@ -59,21 +45,14 @@ export default (logger: winston.Logger, basePath: string) => {
 
             records.unshift({ timestamp, value });
 
-            checkpoint = 5;
-
-            if (current >= RECORD_SIZE) {
+            if (++current >= RECORD_COUNT) {
                 current = 0;
-                checkpoint = 6;
             }
+
+            cycles++;
         }
 
-        checkpoint = 7;
-
         await fs.close(handle);
-
-        checkpoint = 8;
-
-        clearTimeout(timer);
 
         ctx.response.body = records;
     }
