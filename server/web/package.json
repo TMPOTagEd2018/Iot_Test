@@ -1,0 +1,20 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "main": "web_server.js",
+  "repository": "https://github.com/TMPOTagEd2018/web-server",
+  "license": "null",
+  "dependencies": {
+    "@types/fs-extra": "^5.0.4",
+    "@types/koa-router": "^7.0.30",
+    "fs-extra": "^7.0.0",
+    "koa": "^2.5.2",
+    "koa-router": "^7.4.0",
+    "sqlite3": "^4.0.2",
+    "winston": "^3.0.0"
+  },
+  "devDependencies": {
+    "@types/koa": "^2.0.46",
+    "@types/sqlite3": "^3.1.3"
+  }
+}
