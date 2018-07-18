@@ -7,6 +7,7 @@ import * as path from "path";
 export default (logger: winston.Logger, basePath: string) => {
     async function handler(ctx: Koa.Context) {
         let checkpoint = 0;
+        let position, current;
 
         const POINTER_SIZE = 4;
         const RECORD_SIZE = 9;
@@ -18,7 +19,7 @@ export default (logger: winston.Logger, basePath: string) => {
         checkpoint = 1;
 
         const timer = setTimeout(() => {
-            logger.warn(`Reading sensor data on ${node}/${sensor} timed out. Checkpoint: ${checkpoint}`);
+            logger.warning(`Reading sensor data on ${node}/${sensor} timed out. Checkpoint: ${checkpoint}, position: ${position}, current: ${current}`);
         }, 3000);
 
         const fn = path.join(basePath, "cache", node, sensor);
@@ -33,14 +34,19 @@ export default (logger: winston.Logger, basePath: string) => {
         const handle = await fs.open(fn, "r");
         const buf = Buffer.alloc(RECORD_SIZE);
         await fs.read(handle, buf, 0, POINTER_SIZE, 0);
-        const position = buf.readInt32LE(0);
+        position = buf.readInt32LE(0);
         const start = (position - limit + RECORD_COUNT) % RECORD_COUNT;
         const records = [];
 
         checkpoint = 3;
 
-        for (let current = start; current != position; current = (current + 1) % RECORD_SIZE) {
-            await fs.read(handle, buf, 0, RECORD_SIZE, POINTER_SIZE + current * RECORD_SIZE);
+        for (current = start; current != position; current = (current + 1) % RECORD_SIZE) {
+            const result = await fs.read(handle, buf, 0, RECORD_SIZE, POINTER_SIZE + current * RECORD_SIZE);
+
+            if (result.bytesRead !== RECORD_SIZE) {
+                logger.warning(`Reading sensor data on ${node}/${sensor} read only ${result.bytesRead} bytes, expecting ${RECORD_SIZE}`);
+            }
+
             const timestamp = buf.readDoubleLE(0);
             const value = buf[8];
 
