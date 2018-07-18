@@ -18,10 +18,10 @@ const logger = winston.createLogger({
             format: winston.format.combine(
                 winston.format.timestamp(),
                 winston.format.splat(),
+                winston.format.colorize(),
                 winston.format.printf(info => {
                     return `${info.timestamp} | ${info.level}: ${info.message}`;
-                }),
-                winston.format.colorize()),
+                })),
             level: "debug",
             handleExceptions: true
         })
@@ -48,8 +48,17 @@ api.use("/sensor", SensorApi(logger, basePath).routes());
 router.use("/api", api.routes());
 
 app.use(async (ctx, next) => {
-    logger.log("debug", `request: ${ctx.protocol} ${ctx.method} ${ctx.href}`);
-    await next();
+    logger.debug(`request: ${ctx.protocol} ${ctx.method} ${ctx.href}`);
+
+    try {
+        await next();
+    } catch (e) {
+        logger.error(e);
+    }
+});
+
+app.on("error", (err, ctx) => {
+    logger.error(err);
 });
 
 app.use(router.routes());
