@@ -9,7 +9,7 @@ export default (basePath: string) => {
         const RECORD_SIZE = 9;
         const RECORD_COUNT = 2400;
         
-        const limit = Math.min(RECORD_COUNT, ctx.params.limit || 500);
+        const limit = Math.min(RECORD_COUNT, ctx.params.limit || 1);
         const { since, node, sensor } = ctx.params;
 
         const fn = path.join(basePath, "cache", node, sensor);
@@ -31,6 +31,7 @@ export default (basePath: string) => {
             const value = buf[8];
 
             if(timestamp === 0) continue;
+            if(since && timestamp < since) continue;
 
             records.unshift({ timestamp, value });
         }

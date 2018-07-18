@@ -3,6 +3,7 @@ import * as http from "http";
 
 import * as Koa from "koa";
 import * as KoaRouter from "koa-router";
+import * as KoaStatic from "koa-static";
 
 import * as winston from "winston";
 
@@ -29,6 +30,7 @@ const logger = winston.createLogger({
 });
 
 const basePath = path.join(__dirname, "..");
+const clientPath = path.join(basePath, "../client/dist");
 const dbPath = path.join(basePath, "data.db");
 
 logger.info(`Base path: ${basePath}`);
@@ -51,7 +53,7 @@ app.use(async (ctx, next) => {
 });
 
 app.use(router.routes());
-
+app.use(KoaStatic(clientPath, { gzip: true }));
 
 const serverFactory = http.createServer;
 const server = serverFactory(app.callback());
