@@ -42,8 +42,10 @@ export default (logger: winston.Logger, basePath: string) => {
 
         checkpoint = 3;
 
-        for (current = start; current != position; current = (current + 1) % RECORD_SIZE) {
+        for (current = start; current != position; current++) {
             const result = await fs.read(handle, buf, 0, RECORD_SIZE, POINTER_SIZE + current * RECORD_SIZE);
+
+            checkpoint = 4;
 
             if (result.bytesRead !== RECORD_SIZE) {
                 logger.warning(`Reading sensor data on ${node}/${sensor} read only ${result.bytesRead} bytes, expecting ${RECORD_SIZE}`);
@@ -56,13 +58,20 @@ export default (logger: winston.Logger, basePath: string) => {
             if (since && timestamp < since) continue;
 
             records.unshift({ timestamp, value });
+
+            checkpoint = 5;
+
+            if (current >= RECORD_SIZE) {
+                current = 0;
+                checkpoint = 6;
+            }
         }
 
-        checkpoint = 4;
+        checkpoint = 7;
 
         await fs.close(handle);
 
-        checkpoint = 5;
+        checkpoint = 8;
 
         clearTimeout(timer);
 
