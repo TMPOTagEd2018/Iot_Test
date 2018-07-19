@@ -45,6 +45,9 @@ $font-family-sans-serif: "Aileron", "Nunito Sans", -apple-system, BlinkMacSystem
 
 body {
     background-color: gainsboro;
+    background-image: url("~@res/img/noise.png");
+    background-repeat: repeat;
+    // background-size: cover;
 }
 
 h1, h2, h3, h4 , h5, h6 {
