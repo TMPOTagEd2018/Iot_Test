@@ -1,7 +1,7 @@
 <template>
     <div id="container">
-        <nav class="navbar navbar-expand-lg navbar-light bg-light mb-4">
-            <a class="navbar-brand" href="#">Room Security</a>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow mb-4">
+            <a class="navbar-brand" href="#">PI-STAR</a>
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>

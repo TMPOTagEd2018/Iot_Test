@@ -1,4 +1,4 @@
-import 'bootstrap';
+import * as sformat from "string-format";
 
 import Vue from "vue";
 import VueRouter from "vue-router";
@@ -13,7 +13,14 @@ Vue.use(VueRouter);
 Vue.filter("ago", (value: string) => {
     const date = moment(value);
     return date.fromNow(true);
-})
+});
+
+Vue.filter("format", (value: string, format: string | Function) => {
+    if (typeof format === "string")
+        return sformat(format, value);
+    else
+        return format(value);
+});
 
 if (module.hot) {
     module.hot.accept(["./lib/state"], () => {

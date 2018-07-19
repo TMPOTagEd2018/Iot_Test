@@ -51,7 +51,7 @@ module.exports = {
                 exclude: /node_modules/
             },
             {
-                test: /\.(png|svg|jpg|gif)$/,
+                test: /\.(png|svg|jpg|gif|woff)$/,
                 loader: "file-loader",
                 options: { name: "[path][name].[ext]", publicPath: "/" }
             },

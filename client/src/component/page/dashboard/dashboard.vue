@@ -9,22 +9,22 @@
             {{ error }}
         </div>
 
-        <div style="height: 150pt" class="rounded mb-2 border border-primary position-relative">
+        <div style="height: 150pt" class="rounded mb-2 border position-relative">
             <live-chart ref="threatChart" />
 
-            <h1 class="threat-description display-2 text-success text-center" v-if="threatLevel == 0">
+            <h1 class="threat-description display-3 text-success text-center" v-if="threatLevel < 0.5">
                 You're safe and sound.
             </h1>
 
-            <h1 class="threat-description display-2 text-info text-center" v-else-if="threatLevel < 3">
+            <h1 class="threat-description display-3 text-info text-center" v-else-if="threatLevel < 3">
                 Potential activity detected.
             </h1>
 
-            <h1 class="threat-description display-2 text-warning text-center" v-else-if="threatLevel < 6">
+            <h1 class="threat-description display-3 text-warning text-center" v-else-if="threatLevel < 6">
                 Suspicious activity detected.
             </h1>
 
-            <h1 class="threat-description display-2 text-danger text-center" v-else>
+            <h1 class="threat-description display-3 text-danger text-center" v-else>
                 Critical activity detected.
             </h1>
         </div>
@@ -42,10 +42,13 @@
                         <h6>{{ sensor.name }}</h6>
                         <p class="text-muted">{{ sensor.type }}</p>
                         <template v-if="sensor.data">
-                            <p>
-                                <span v-if="sensor.type == 0">{{ sensor.data.value }}</span>
-                                <span class="ml-1 text-muted small">{{ sensor.data.timestamp * 1000 | ago }} ago</span>
+                            <p class="m-0">
+                                <span>{{ sensor.data.value | format(sensor.format) }}</span>
+                                <span class="text-muted small">{{ sensor.data.timestamp * 1000 | ago }} ago</span>
                             </p>
+                        </template>
+                        <template v-else>
+                            <span class="text-muted font-italic">No data available.</span>
                         </template>
                     </li>
                 </ul>
