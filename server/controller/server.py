@@ -87,7 +87,7 @@ def write_cache(node_name: str, sensor_name: str, value: int):
     cache_file_name = path.join(cache_folder, sensor_name)
 
     POINTER_SIZE = 4
-    RECORD_SIZE = 9
+    RECORD_SIZE = 10
     RECORD_COUNT = 2400
     with open(cache_file_name, "r+b" if os.path.exists(cache_file_name) else "w+b") as cache_file:
         current_size = os.stat(cache_file_name).st_size
@@ -107,7 +107,7 @@ def write_cache(node_name: str, sensor_name: str, value: int):
         timestamp = time.time()
         file_position = POINTER_SIZE + position * RECORD_SIZE
         cache_file.seek(file_position, 0)
-        cache_file.write(struct.pack("db", timestamp, value))
+        cache_file.write(struct.pack("dh", timestamp, value))
 
         position = (position + 1) % RECORD_COUNT
         position_bytes = struct.pack("L", position)

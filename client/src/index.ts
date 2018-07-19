@@ -3,10 +3,17 @@ import 'bootstrap';
 import Vue from "vue";
 import VueRouter from "vue-router";
 
+import moment from "moment";
+
 import App from "@component/app/app.vue";
 import store from "@lib/state";
 
 Vue.use(VueRouter);
+
+Vue.filter("ago", (value: string) => {
+    const date = moment(value);
+    return date.fromNow(true);
+})
 
 if (module.hot) {
     module.hot.accept(["./lib/state"], () => {

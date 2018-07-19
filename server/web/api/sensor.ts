@@ -10,7 +10,7 @@ export default (logger: winston.Logger, basePath: string) => {
         let position = 0, current = 0, cycles = 0, start = 0;
 
         const POINTER_SIZE = 4;
-        const RECORD_SIZE = 9;
+        const RECORD_SIZE = 10;
         const RECORD_COUNT = 2400;
 
         const limit = Math.min(RECORD_COUNT, ctx.params.limit || 1);
@@ -38,7 +38,7 @@ export default (logger: winston.Logger, basePath: string) => {
             }
 
             const timestamp = buf.readDoubleLE(0);
-            const value = buf[8];
+            const value = buf.readInt8(8);
 
             if (timestamp === 0) continue;
             if (since && timestamp < since) continue;
