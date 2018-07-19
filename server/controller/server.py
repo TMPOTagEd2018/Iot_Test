@@ -28,8 +28,8 @@ from typing import Dict
 monitors: Dict[str, monitor.Monitor] = {
     "door/imu": monitor.imu.ImuMonitor(1),
     "door/contact": monitor.contact.ContactMonitor(1),
-    "box/imu": monitor.imu.ImuMonitor(1),
-    "box/contact": monitor.contact.ContactMonitor(1)
+    "box/imu": monitor.imu.ImuMonitor(2),
+    "box/contact": monitor.contact.ContactMonitor(3)
 }
 
 base_dir = path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -76,6 +76,18 @@ private_key, public_key = dh.get_private_key(), dh.gen_public_key()
 
 
 print(f"Server initialising, public key {public_key}")
+
+
+def write_heartbeat(node_name: str):
+    cache_folder = path.join(base_dir, f"cache/{node_name}")
+
+    if not path.exists(cache_folder):
+        os.makedirs(cache_folder)
+
+    cache_file_name = path.join(cache_folder, "heartbeat")
+
+    with open(cache_file_name, "w+") as cache_file:
+        cache_file.write(str(time.time()))
 
 
 def write_cache(node_name: str, sensor_name: str, value: int):
@@ -135,7 +147,10 @@ def on_message(client: mqtt.Client, userdata, msg: mqtt.MQTTMessage):
         value = int(msg.payload.decode())
         monitors[msg.topic].input(value)
 
-        write_cache(node_name, sensor_name, value)
+        if sensor_name != "heartbeat":
+            write_cache(node_name, sensor_name, value)
+        else:
+            write_heartbeat(node_name)
 
 
 client = mqtt.Client()

@@ -47,7 +47,7 @@ export class Sensor {
             case SensorType.Lux: this.format = "{} lux"; break;
             case SensorType.Microphone: this.format = "{} dB"; break;
             case SensorType.PIR: this.format = (v) => v ? "Motion not detected" : "Motion detected"; break;
-            case SensorType.Contact: this.format = (v) => v ? "Contact established" : "Contact broken"; break;
+            case SensorType.Contact: this.format = (v) => !v ? "Contact active" : "Contact broken"; break;
             default: this.format = "{}";
         }
     }

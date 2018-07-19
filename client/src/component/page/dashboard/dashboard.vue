@@ -125,7 +125,6 @@ export default class Dashboard extends Vue {
             this.threatLevel = data.new_level;
             this.threatLevelMax = Math.max(this.threatLevel, this.threatLevelMax);
         } catch {
-
         }
 
         try {
@@ -152,7 +151,6 @@ export default class Dashboard extends Vue {
             chart.push(...points);
             this.lastUpdate = time;
         } catch {
-
         }
     }
 }

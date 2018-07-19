@@ -54,7 +54,7 @@ export default class LiveChart extends Vue {
             maxValueScale: 1.1,
             minValueScale: 1.1,
             timestampFormatter: (d) => moment(d).fromNow(),
-            grid: { fillStyle: "transparent", strokeStyle: "transparent", millisPerLine: 60 * 1000 },
+            grid: { fillStyle: "white", strokeStyle: "transparent", millisPerLine: 60 * 1000 },
             labels: {
                 fillStyle: "black",
                 fontFamily: "sans-serif",
