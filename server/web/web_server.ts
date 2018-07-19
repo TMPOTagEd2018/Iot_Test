@@ -1,5 +1,8 @@
 import * as path from "path";
 import * as http from "http";
+import * as http2 from "http2";
+import * as https from "https";
+import * as fs from "fs-extra";
 
 import * as Koa from "koa";
 import * as KoaRouter from "koa-router";
@@ -11,6 +14,7 @@ import ThreatApi from "./api/threat";
 import SensorApi from "./api/sensor";
 
 import * as sqlite from "sqlite3";
+import { Server } from "net";
 
 const logger = winston.createLogger({
     transports: [
@@ -64,7 +68,52 @@ app.on("error", (err, ctx) => {
 app.use(router.routes());
 app.use(KoaStatic(clientPath, { gzip: true }));
 
-const serverFactory = http.createServer;
+type HttpCallback = (req: http.IncomingMessage | http2.Http2ServerRequest, res: http.ServerResponse | http2.Http2ServerResponse) => void;
+type ServerFactory = (callback: HttpCallback) => Server;
+let serverFactory: ServerFactory;
+
+let flags: { [flag: string]: boolean } = {};
+
+flags.dev = process.env.NODE_ENV === "development";
+if (process.argv.includes("--production")) flags.dev = false;
+if (process.argv.includes("--dev")) flags.dev = true;
+
+if (flags.dev) {
+    logger.info("Running in development mode.");
+} else {
+    logger.info("Running in production mode.");
+}
+
+flags.ssl = !flags.dev;
+if (process.argv.includes("--ssl")) flags.ssl = true;
+
+flags.http2 = false;
+if (process.argv.includes("--http2")) flags.http2 = true;
+
+if (flags.ssl) {
+    logger.info("Using SSL.");
+
+    if (flags.http2) {
+        logger.info("Using HTTP2.");
+        serverFactory = (cb) => http2.createSecureServer({
+            cert: fs.readFileSync(path.join(basePath, "certs/http/cert.pem")),
+            key: fs.readFileSync(path.join(basePath, "certs/http/key.pem"))
+        }, cb);
+    } else {
+        serverFactory = (cb) => https.createServer({
+            cert: fs.readFileSync(path.join(basePath, "certs/http/cert.pem")),
+            key: fs.readFileSync(path.join(basePath, "certs/http/key.pem"))
+        }, cb);
+    }
+} else {
+    if (flags.http2) {
+        logger.info("Using HTTP2.");
+        serverFactory = http2.createServer;
+    } else {
+        serverFactory = http.createServer;
+    }
+}
+
 const server = serverFactory(app.callback());
 const port = process.env.PORT || 8000;
 server.listen(port);
