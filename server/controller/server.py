@@ -63,7 +63,7 @@ def on_connect(client, userdata, flags, rc):
     client.subscribe("room/heartbeat")
     client.subscribe("room/key")
 
-    client.subscribe("box/imu")
+    client.subscribe("box/accel")
     client.subscribe("box/contact")
     client.subscribe("box/range")
     client.subscribe("box/heartbeat")
