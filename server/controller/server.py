@@ -28,7 +28,7 @@ from typing import Dict
 monitors: Dict[str, monitor.Monitor] = {
     "door/imu": monitor.imu.ImuMonitor(1),
     "door/contact": monitor.contact.ContactMonitor(1),
-    "box/imu": monitor.imu.ImuMonitor(2),
+    "box/accel": monitor.imu.ImuMonitor(2),
     "box/contact": monitor.contact.ContactMonitor(3)
 }
 
@@ -63,7 +63,7 @@ def on_connect(client, userdata, flags, rc):
     client.subscribe("room/heartbeat")
     client.subscribe("room/key")
 
-    client.subscribe("box/imu")
+    client.subscribe("box/accel")
     client.subscribe("box/contact")
     client.subscribe("box/range")
     client.subscribe("box/heartbeat")

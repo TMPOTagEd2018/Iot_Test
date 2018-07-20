@@ -99,7 +99,7 @@ export default class Dashboard extends Vue {
         ];
 
         box.sensors = [
-            new Sensor("IMU 1", "imu", SensorType.Imu),
+            new Sensor("Accelerometer 1", "accel", SensorType.Accelerometer),
             new Sensor("Contact 1", "contact", SensorType.Contact)
         ];
 
