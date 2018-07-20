@@ -33,7 +33,7 @@ export class Sensor {
     public format: string | ((value: string) => string);
 
     public data: SensorData | null = null;
-    
+
     public type: SensorType;
 
     constructor(name: string, sensorName: string, type: SensorType) {
@@ -54,7 +54,7 @@ export class Sensor {
 
     public async update(node: Node) {
         try {
-            const response = await axios.get(`/api/sensor/${node.nodeName}/${this.sensorName}/`);
+            const response = await axios.get(`/api/sensor/${node.nodeName}/${this.sensorName}`);
             if (response.status === 200) {
                 this.data = response.data[0];
             }
@@ -71,6 +71,7 @@ export class Node {
     // Internal name
     public nodeName: string;
 
+    public heartbeat: number | null = null;
 
     public sensors: Sensor[] = [];
 
@@ -81,5 +82,12 @@ export class Node {
 
     public async update() {
         this.sensors.forEach(s => s.update(this));
+
+        try {
+            const response = await axios.get(`/api/sensor/${this.nodeName}/heartbeat`);
+            if (response.status === 200) {
+                this.heartbeat = response.data;
+            }
+        } catch { }
     }
 }

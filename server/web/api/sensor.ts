@@ -58,6 +58,17 @@ export default (logger: winston.Logger, basePath: string) => {
     }
 
     return new KoaRouter()
+        .get("/:node([A-Za-z0-9]+)/heartbeat", async (ctx) => {
+            const { node } = ctx.params;
+
+            const fn = path.join(basePath, "cache", node, "heartbeat");
+            if (!await fs.pathExists(fn)) {
+                ctx.response.status = 404;
+                return;
+            }
+
+            ctx.response.body = await fs.readFile(fn, "utf8");
+        })
         .get("/:node([A-Za-z0-9]+)/:sensor([A-Za-z0-9]+)", handler)
         .get("/:node([A-Za-z0-9]+)/:sensor([A-Za-z0-9]+)/limit::limit(\\d+)", handler)
         .get("/:node([A-Za-z0-9]+)/:sensor([A-Za-z0-9]+)/since::since(\\d+)", handler)
