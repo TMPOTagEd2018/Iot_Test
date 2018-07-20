@@ -35,7 +35,12 @@
 
         <div class="card-columns">
             <div class="card" v-for="(node, $index) in nodes" :key="$index">
-                <h5 class="card-header">{{ node.name }}</h5>
+                <h5 class="card-header d-flex justify-content-between align-items-baseline">
+                    <span>{{ node.name }}</span>
+                    <span class="font-weight-bold text-warning small" v-if="node.heartbeat === null">Not connected</span>
+                    <span class="font-weight-bold text-danger small" v-else-if="node.heartbeat < +new Date() / 1000 - 10">Offline</span>
+                    <span class="text-muted small" v-else>Last seen {{ node.heartbeat * 1000 | ago }} ago</span>
+                </h5>
 
                 <ul class="list-group list-group-flush">
                     <li class="list-group-item" v-for="(sensor, $index) in node.sensors" :key="$index">
@@ -43,8 +48,10 @@
                         <p class="text-muted">{{ sensor.type }}</p>
                         <template v-if="sensor.data">
                             <p class="m-0">
-                                <span>{{ sensor.data.value | format(sensor.format) }}</span>
-                                <span class="text-muted small">{{ sensor.data.timestamp * 1000 | ago }} ago</span>
+                                <span :class="{ 'text-dark': (+new Date() - sensor.data.timestamp * 1000) < 10000 }">{{ sensor.data.value | format(sensor.format) }}</span>
+                                <span class="small">
+                                    {{ sensor.data.timestamp * 1000 | ago }} ago
+                                </span>
                             </p>
                         </template>
                         <template v-else>

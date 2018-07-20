@@ -70,7 +70,7 @@ def on_connect(client, userdata, flags, rc):
     client.subscribe("box/key")
 
 
-rngs = {}
+authenticated = {}
 dh = keyex.DiffieHellman()
 private_key, public_key = dh.get_private_key(), dh.gen_public_key()
 
@@ -141,16 +141,17 @@ def on_message(client: mqtt.Client, userdata, msg: mqtt.MQTTMessage):
 
         print(f"Key exchange completed with {node_name} node, shared key {sk}")
         monitors[node_name + "/heartbeat"] = monitor.heartbeat.HeartbeatMonitor(sk)
+        authenticated[node_name] = True
         return
 
-    if msg.topic in monitors:
+    if msg.topic in monitors and node_name in authenticated.keys():
         value = int(msg.payload.decode())
         monitors[msg.topic].input(value)
 
-        if sensor_name != "heartbeat":
-            write_cache(node_name, sensor_name, value)
-        else:
+        if sensor_name == "heartbeat":
             write_heartbeat(node_name)
+        else:
+            write_cache(node_name, sensor_name, value)
 
 
 client = mqtt.Client()
