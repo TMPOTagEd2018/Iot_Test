@@ -26,6 +26,8 @@ import time
 from typing import Dict
 
 monitors: Dict[str, monitor.Monitor] = {
+    "room/pir": monitor.pir.PirMonitor(2),
+    "room/lux": monitor.lux.LuxMonitor(1),
     "door/imu": monitor.imu.ImuMonitor(1),
     "door/contact": monitor.contact.ContactMonitor(1),
     "box/accel": monitor.imu.ImuMonitor(2),
