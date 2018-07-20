@@ -6,6 +6,8 @@ import paho.mqtt.client as mqtt
 # Monitors
 import monitor
 import monitor.imu
+import monitor.pir
+import monitor.lux
 import monitor.contact
 import monitor.heartbeat
 
