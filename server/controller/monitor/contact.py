@@ -24,7 +24,7 @@ class ContactMonitor(Monitor):
 
         m = np.sum(buffer)
 
-        fac = sigmoid(m)
+        fac = sigmoid(m / 10 - 0.7)
 
         self.level = m * fac + self.level * (1 - fac)
 

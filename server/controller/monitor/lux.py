@@ -20,9 +20,9 @@ class LuxMonitor(Monitor):
         self.data.on_next(value)
 
     def handler(self, buffer: [int]):
-        m = np.sum(buffer * np.arange(0, 1, 1 / len(buffer))) / len(buffer) / 50
+        m = np.sum(buffer * np.arange(0, 1, 1 / len(buffer))) / 11.475 / len(buffer)
 
-        fac = sigmoid(m)
+        fac = sigmoid(m / 10 - 0.7)
 
         self.level = m * fac + self.level * (1 - fac)
 

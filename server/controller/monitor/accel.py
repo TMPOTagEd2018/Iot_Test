@@ -24,9 +24,9 @@ class AccelMonitor(Monitor):
 
         # observe the last 10 values and check if the box is rotating quickly
 
-        m = np.max(buffer)
+        m = np.max(buffer) / 10
 
-        fac = sigmoid(m)
+        fac = sigmoid(m / 10 - 0.1)
 
         self.level = m * fac + self.level * (1 - fac)
 

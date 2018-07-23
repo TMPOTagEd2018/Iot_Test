@@ -1,5 +1,7 @@
 #!/usr/bin/python3
 
+import argparse
+
 # MQTT
 import paho.mqtt.client as mqtt
 
@@ -27,8 +29,12 @@ import time
 
 from typing import Dict
 
+parser = argparse.ArgumentParser()
+parser.add_argument("--watch", help="Run the server in watch mode. In this mode, the server will not interact, only recieve.", action="store_true")
+args = parser.parse_args()
+
 monitors: Dict[str, monitor.Monitor] = {
-    "room/pir": monitor.pir.PirMonitor(2),
+    "room/pir": monitor.pir.PirMonitor(1),
     "room/lux": monitor.lux.LuxMonitor(1),
     "door/accel": monitor.accel.AccelMonitor(1),
     "door/contact": monitor.contact.ContactMonitor(1),
@@ -78,6 +84,8 @@ private_key, public_key = dh.get_private_key(), dh.gen_public_key()
 
 
 print(f"Server initialising, public key {public_key}")
+if args.watch:
+    print("Watch mode enabled.")
 
 
 def write_heartbeat(node_name: str):
@@ -138,7 +146,7 @@ def write_cache(node_name: str, sensor_name: str, value: int):
 def on_message(client: mqtt.Client, userdata, msg: mqtt.MQTTMessage):
     node_name, sensor_name = path.split(msg.topic)
 
-    if sensor_name == "key":
+    if sensor_name == "key" and not args.watch:
         they_pk = msg.payload.decode()
 
         client.publish("server/key", payload=public_key, qos=1, retain=False)
@@ -165,8 +173,10 @@ client.on_connect = on_connect
 client.on_message = on_message
 client.tls_set(path.join(base_dir, "certs/mqtt/ca.crt"))
 
-client.connect("192.168.4.1", 8883, 60)
-client.publish("server/init", True, qos=2)
+client.connect("10.90.12.213", 8883, 60)
+
+if not args.watch:
+    client.publish("server/init", True, qos=2)
 
 # Blocking call that processes network traffic, dispatches callbacks and
 # handles reconnecting.
