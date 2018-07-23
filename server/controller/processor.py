@@ -30,7 +30,7 @@ class ThreatProcessor:
         fac = sigmoid((threat_score - self.prev_score) * 2.7)
         threat_score = threat_score * fac + self.prev_score * (1 - fac)
 
-        print(",".join(str(z) for z in [*buffer, threat_score]))
+        # print(",".join(str(z) for z in [*buffer, threat_score]))
 
         t = round(time.time(), 3)
         ps = round(self.prev_score, 1)
