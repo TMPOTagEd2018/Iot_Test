@@ -1,6 +1,6 @@
 import numpy as np
 
-from . import Monitor
+from . import Monitor, sigmoid
 
 
 class ContactMonitor(Monitor):
@@ -14,17 +14,18 @@ class ContactMonitor(Monitor):
             .buffer_with_count(10, 5) \
             .subscribe(self.handler)
 
+        self.level = 0
+
     def input(self, value):
         self.data.on_next(value)
 
     def handler(self, buffer: [int]):
-        # the sensor reports degrees/s
-
         # observe the last 10 values and check if contact is over
 
         m = np.sum(buffer)
 
-        if m > 5:
-            self.threats.on_next(4 * self.sensitivity)
-        else:
-            self.threats.on_next(0)
+        fac = sigmoid(m)
+
+        self.level = m * fac + self.level * (1 - fac)
+
+        self.threats.on_next(self.level * self.sensitivity)

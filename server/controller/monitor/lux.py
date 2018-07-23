@@ -1,6 +1,6 @@
 import numpy as np
 
-from . import Monitor
+from . import Monitor, sigmoid
 
 
 class LuxMonitor(Monitor):
@@ -14,14 +14,16 @@ class LuxMonitor(Monitor):
             .buffer_with_count(10, 5) \
             .subscribe(self.handler)
 
+        self.level = 0
+
     def input(self, value):
         self.data.on_next(value)
 
     def handler(self, buffer: [int]):
-        # the sensor reports degrees/s
-
-        # observe the last 10 values and check if contact is over
-
         m = np.sum(buffer * np.arange(0, 1, 1 / len(buffer))) / len(buffer) / 50
 
-        self.threats.on_next(m * self.sensitivity)
+        fac = sigmoid(m)
+
+        self.level = m * fac + self.level * (1 - fac)
+
+        self.threats.on_next(self.level * self.sensitivity)

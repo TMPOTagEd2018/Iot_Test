@@ -1,10 +1,6 @@
 import numpy as np
 
-from . import Monitor
-
-
-def sigmoid(z):
-    return 1 / (1 + np.exp(-z))
+from . import Monitor, sigmoid
 
 
 class AccelMonitor(Monitor):
@@ -33,6 +29,5 @@ class AccelMonitor(Monitor):
         fac = sigmoid(m)
 
         self.level = m * fac + self.level * (1 - fac)
-        
-        self.threats.on_next(self.level * self.sensitivity)
 
+        self.threats.on_next(self.level * self.sensitivity)
