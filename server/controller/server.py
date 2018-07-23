@@ -5,9 +5,9 @@ import paho.mqtt.client as mqtt
 
 # Monitors
 import monitor
-import monitor.imu
 import monitor.pir
 import monitor.lux
+import monitor.accel
 import monitor.contact
 import monitor.heartbeat
 
@@ -30,9 +30,9 @@ from typing import Dict
 monitors: Dict[str, monitor.Monitor] = {
     "room/pir": monitor.pir.PirMonitor(2),
     "room/lux": monitor.lux.LuxMonitor(1),
-    "door/imu": monitor.imu.ImuMonitor(1),
+    "door/accel": monitor.accel.AccelMonitor(1),
     "door/contact": monitor.contact.ContactMonitor(1),
-    "box/accel": monitor.imu.ImuMonitor(2),
+    "box/accel": monitor.accel.AccelMonitor(2),
     "box/contact": monitor.contact.ContactMonitor(3)
 }
 
