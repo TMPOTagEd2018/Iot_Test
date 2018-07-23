@@ -38,7 +38,7 @@ export default (logger: winston.Logger, basePath: string) => {
             }
 
             const timestamp = buf.readDoubleLE(0);
-            const value = buf.readInt8(8);
+            const value = buf.readInt16LE(8);
 
             if (timestamp === 0) continue;
             if (since && timestamp < since) continue;
