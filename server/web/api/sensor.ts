@@ -48,8 +48,6 @@ export default (logger: winston.Logger, basePath: string) => {
             if (++current >= RECORD_COUNT) {
                 current = 0;
             }
-
-            cycles++;
         }
 
         await fs.close(handle);
