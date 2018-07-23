@@ -3,7 +3,11 @@ import numpy as np
 from . import Monitor
 
 
-class ImuMonitor(Monitor):
+def sigmoid(z):
+    return 1 / (1 + np.exp(-z))
+
+
+class AccelMonitor(Monitor):
     def __init__(self, sensitivity=1):
         super().__init__()
 
@@ -13,6 +17,8 @@ class ImuMonitor(Monitor):
             .map(int) \
             .buffer_with_count(10, 5) \
             .subscribe(self.handler)
+
+        self.level = 0
 
     def input(self, value):
         self.data.on_next(value)
@@ -24,14 +30,9 @@ class ImuMonitor(Monitor):
 
         m = np.max(buffer)
 
-        # the box should be stationary and the gyro shouldn't be jittering more
-        # than ±2 degrees
+        fac = sigmoid(m)
 
-        if m > 20:
-            self.threats.on_next(3 * self.sensitivity)
-        elif m > 10:
-            self.threats.on_next(2 * self.sensitivity)
-        elif m > 1:
-            self.threats.on_next(1 * self.sensitivity)
-        else:
-            self.threats.on_next(0)
+        self.level = m * fac + self.level * (1 - fac)
+        
+        self.threats.on_next(self.level * self.sensitivity)
+

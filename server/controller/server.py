@@ -5,9 +5,9 @@ import paho.mqtt.client as mqtt
 
 # Monitors
 import monitor
-import monitor.imu
 import monitor.pir
 import monitor.lux
+import monitor.accel
 import monitor.contact
 import monitor.heartbeat
 
@@ -30,9 +30,9 @@ from typing import Dict
 monitors: Dict[str, monitor.Monitor] = {
     "room/pir": monitor.pir.PirMonitor(2),
     "room/lux": monitor.lux.LuxMonitor(1),
-    "door/imu": monitor.imu.ImuMonitor(1),
+    "door/accel": monitor.accel.AccelMonitor(1),
     "door/contact": monitor.contact.ContactMonitor(1),
-    "box/accel": monitor.imu.ImuMonitor(2),
+    "box/accel": monitor.accel.AccelMonitor(2),
     "box/contact": monitor.contact.ContactMonitor(3)
 }
 
@@ -56,20 +56,18 @@ def on_connect(client, userdata, flags, rc):
     # Subscribing in on_connect() means that if we lose the connection and
     # reconnect then subscriptions will be renewed.
 
-    client.subscribe("door/imu")
+    client.subscribe("door/accel")
     client.subscribe("door/contact")
     client.subscribe("door/heartbeat")
     client.subscribe("door/key")
 
     client.subscribe("room/lux")
     client.subscribe("room/pir")
-    client.subscribe("room/range")
     client.subscribe("room/heartbeat")
     client.subscribe("room/key")
 
     client.subscribe("box/accel")
     client.subscribe("box/contact")
-    client.subscribe("box/range")
     client.subscribe("box/heartbeat")
     client.subscribe("box/key")
 
