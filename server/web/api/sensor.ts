@@ -6,11 +6,10 @@ import * as path from "path";
 
 export default (logger: winston.Logger, basePath: string) => {
     async function handler(ctx: Koa.Context) {
-        let checkpoint = 0;
-        let position = 0, current = 0, cycles = 0, start = 0;
+        let position = 0, current = 0, start = 0;
 
         const POINTER_SIZE = 4;
-        const RECORD_SIZE = 10;
+        const RECORD_SIZE = 13;
         const RECORD_COUNT = 2400;
 
         const limit = Math.min(RECORD_COUNT, ctx.params.limit || 1);
@@ -38,7 +37,8 @@ export default (logger: winston.Logger, basePath: string) => {
             }
 
             const timestamp = buf.readDoubleLE(0);
-            const value = buf.readInt16LE(8);
+            const isFloat = buf[8] == 1;
+            const value = isFloat ? buf.readFloatLE(9) : buf.readInt32LE(9);
 
             if (timestamp === 0) continue;
             if (since && timestamp < since) continue;
