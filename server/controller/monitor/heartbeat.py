@@ -28,7 +28,7 @@ class HeartbeatMonitor(Monitor):
         check = random.getrandbits(32)
         if check != int(value):
             return
-            
+
         self.rng = random.getstate()
 
         self.threats.on_next(0)

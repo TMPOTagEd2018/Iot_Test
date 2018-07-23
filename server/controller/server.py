@@ -161,7 +161,8 @@ client.on_connect = on_connect
 client.on_message = on_message
 client.tls_set(path.join(base_dir, "certs/mqtt/ca.crt"))
 
-client.connect("10.90.12.213", 8883, 60)
+client.connect("192.168.4.1", 8883, 60)
+client.publish("server/init", True, qos=2)
 
 # Blocking call that processes network traffic, dispatches callbacks and
 # handles reconnecting.
