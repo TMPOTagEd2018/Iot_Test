@@ -98,6 +98,7 @@ def start_web_server():
 
         tsc = sp.Popen("tsc", cwd=web_path, stdout=sp.PIPE, shell=True)
 
+        outs, errs = (None, None)
         while tsc.poll() is None:
             outs, errs = tsc.communicate()
 
@@ -109,6 +110,12 @@ def start_web_server():
             log("tsc succeeded.", LEVEL_INFO)
         else:
             log(f"tsc failed with error code {tsc.returncode}", LEVEL_WARNING)
+            if outs is not None:
+                for line in outs:
+                    log(line, level=LEVEL_INFO, src="tsc")
+            if errs is not None:
+                for line in errs:
+                    log(line, level=LEVEL_ERROR, src="tsc")
 
     client_path = path.join(path.dirname(file_dir), "client")
     dist_path = path.join(client_path, "dist")
@@ -131,21 +138,25 @@ def start_web_server():
 
         webpack = sp.Popen(["webpack", "--config", "webpack.prod.js"], cwd=client_path, stdout=sp.PIPE, shell=True)
 
-        output = []
+        outs, errs = (None, None)
         while webpack.poll() is None:
             outs, errs = webpack.communicate()
 
             if outs is not None:
-                output += [(LEVEL_INFO, line.decode()) for line in outs]
+                outs = outs.decode().splitlines()
             if errs is not None:
-                output += [(LEVEL_ERROR, line.decode()) for line in errs]
+                errs = errs.decode().splitlines()
 
         if webpack.poll() == 0:
             log("webpack succeeded.", LEVEL_INFO)
         else:
             log(f"webpack failed with error code {webpack.returncode}", LEVEL_WARNING)
-            for level, line in output:
-                log(line, level=level, src="webpack")
+            if outs is not None:
+                for line in outs:
+                    log(line, level=LEVEL_INFO, src="webpack")
+            if errs is not None:
+                for line in errs:
+                    log(line, level=LEVEL_ERROR, src="webpack")
 
     log("starting web server.", LEVEL_INFO)
     return sp.Popen(["node", "web_server.js"], cwd=web_path, stdout=sp.PIPE, stderr=sp.PIPE)
