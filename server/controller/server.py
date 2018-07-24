@@ -42,7 +42,7 @@ monitors: Dict[str, monitor.Monitor] = {
     "box/contact": monitor.contact.ContactMonitor(3)
 }
 
-base_dir = path.dirname(os.path.dirname(os.path.abspath(__file__)))
+base_dir = path.dirname(path.dirname(path.abspath(__file__)))
 
 print(f"Base dir: {base_dir}")
 
