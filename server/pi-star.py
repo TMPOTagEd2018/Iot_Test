@@ -1,6 +1,7 @@
 import argparse as ap
 import subprocess as sp
 import os.path as path
+import os
 import sys
 import colorama as cr
 from threading import Thread
@@ -62,7 +63,14 @@ def log(message, level=LEVEL_INFO, src="pi-star"):
     if src == "npm":
         tag = cr.Fore.GREEN
 
+    if src == "webpack":
+        tag = cr.Fore.LIGHTBLUE_EX
+
     print(f"{tag}[{src}] {style}{message}")
+
+
+def getmtime_directory(directory, filter=None):
+    return max(path.getmtime(root) for root, _, _ in os.walk(directory) if filter is None or filter(root))
 
 
 def start_web_server():
@@ -73,12 +81,12 @@ def start_web_server():
         log("node js not found; please install node js; exiting", LEVEL_ERROR)
         sys.exit(-1)
 
-    if path.getmtime(web_file + ".ts") > path.getmtime(web_file + ".js"):
+    if getmtime_directory(web_path, lambda f: "node_modules" not in f) > path.getmtime(web_file + ".js"):
         log("new typescript files detected; running tsc.", LEVEL_INFO)
 
         if which("tsc") is None:
             log("tsc not found; installing tsc", LEVEL_INFO)
-            tsc_install = sp.run(["npm", "i", "-g", "typescript"])
+            tsc_install = sp.run(["npm", "i", "-g", "typescript"], shell=True)
 
             if tsc_install.returncode == 0:
                 log("tsc installed.", LEVEL_INFO)
@@ -86,18 +94,54 @@ def start_web_server():
                 log(f"tsc install failed with error code {tsc_install.returncode}", LEVEL_WARNING)
 
                 for line in tsc_install.stdout:
-                    log(line, src="npm")
+                    log(line.decode(), src="npm")
 
-        tsc = sp.Popen(["tsc"], cwd=web_path, stdout=sp.PIPE)
-        tsc.wait()
+        tsc = sp.Popen("tsc", cwd=web_path, stdout=sp.PIPE, shell=True)
+        
+        while tsc.poll() is None:
+            outs, errs = tsc.communicate()
+
+            if errs is not None:
+                for line in errs:
+                    log(line.decode(), src="tsc", level=LEVEL_ERROR)
 
         if tsc.poll() == 0:
             log("tsc succeeded.", LEVEL_INFO)
         else:
             log(f"tsc failed with error code {tsc.returncode}", LEVEL_WARNING)
 
-            for line in tsc.stdout.readlines():
-                log(line, src="tsc")
+    client_path = path.join(path.dirname(file_dir), "client")
+    dist_path = path.join(client_path, "dist")
+
+    if not path.exists(dist_path) or \
+            getmtime_directory(client_path, lambda f: "node_modules" not in f) > getmtime_directory(dist_path):
+        log("new client files detected, running webpack")
+
+        if which("webpack") is None:
+            log("webpack not found; installing webpack", LEVEL_INFO)
+            webpack_install = sp.run(["npm", "i", "-g", "webpack-cli"], shell=True)
+
+            if webpack_install.returncode == 0:
+                log("webpack installed.", LEVEL_INFO)
+            else:
+                log(f"webpack install failed with error code {webpack_install.returncode}", LEVEL_WARNING)
+
+                for line in webpack_install.stdout:
+                    log(line.decode(), src="npm")
+
+        webpack = sp.Popen(["webpack", "--config", "webpack.prod.js"], cwd=client_path, stdout=sp.PIPE, shell=True)
+
+        while webpack.poll() is None:
+            outs, errs = webpack.communicate()
+
+            if errs is not None:
+                for line in errs:
+                    log(line.decode(), src="webpack", level=LEVEL_ERROR)
+
+        if webpack.poll() == 0:
+            log("webpack succeeded.", LEVEL_INFO)
+        else:
+            log(f"webpack failed with error code {webpack.returncode}", LEVEL_WARNING)
 
     log("starting web server.", LEVEL_INFO)
     return sp.Popen(["node", "web_server.js"], cwd=web_path, stdout=sp.PIPE, stderr=sp.PIPE)
