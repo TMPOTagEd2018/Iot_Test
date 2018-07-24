@@ -136,7 +136,7 @@ def start_web_server():
                 for line in webpack_install.stdout:
                     log(line.decode(), src="npm")
 
-        webpack = sp.Popen(["webpack", "--config", "webpack.prod.js"], cwd=client_path, stdout=sp.PIPE, shell=True)
+        webpack = sp.Popen(f"webpack --config {path.join(client_path, 'webpack.prod.js')}", cwd=client_path, stdout=sp.PIPE, shell=True)
 
         outs, errs = (None, None)
         while webpack.poll() is None:
