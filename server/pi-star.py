@@ -97,7 +97,7 @@ def start_web_server():
                     log(line.decode(), src="npm")
 
         tsc = sp.Popen("tsc", cwd=web_path, stdout=sp.PIPE, shell=True)
-        
+
         while tsc.poll() is None:
             outs, errs = tsc.communicate()
 
