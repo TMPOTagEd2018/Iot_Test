@@ -131,17 +131,21 @@ def start_web_server():
 
         webpack = sp.Popen(["webpack", "--config", "webpack.prod.js"], cwd=client_path, stdout=sp.PIPE, shell=True)
 
+        output = []
         while webpack.poll() is None:
             outs, errs = webpack.communicate()
 
+            if outs is not None:
+                output += [(LEVEL_INFO, line.decode()) for line in outs]
             if errs is not None:
-                for line in errs:
-                    log(line.decode(), src="webpack", level=LEVEL_ERROR)
+                output += [(LEVEL_ERROR, line.decode()) for line in errs]
 
         if webpack.poll() == 0:
             log("webpack succeeded.", LEVEL_INFO)
         else:
             log(f"webpack failed with error code {webpack.returncode}", LEVEL_WARNING)
+            for level, line in output:
+                log(line, level=level, src="webpack")
 
     log("starting web server.", LEVEL_INFO)
     return sp.Popen(["node", "web_server.js"], cwd=web_path, stdout=sp.PIPE, stderr=sp.PIPE)
