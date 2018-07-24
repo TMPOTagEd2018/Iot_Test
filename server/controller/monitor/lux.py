@@ -3,7 +3,7 @@ import numpy as np
 from . import Monitor, sigmoid
 
 
-class ContactMonitor(Monitor):
+class LuxMonitor(Monitor):
     def __init__(self, sensitivity=1):
         super().__init__()
 
@@ -20,9 +20,7 @@ class ContactMonitor(Monitor):
         self.data.on_next(value)
 
     def handler(self, buffer: [int]):
-        # observe the last 10 values and check if contact is over
-
-        m = np.sum(buffer)
+        m = np.sum(buffer * np.arange(0, 1, 1 / len(buffer))) / 11.475 / len(buffer)
 
         fac = sigmoid(m / 10 - 0.7)
 

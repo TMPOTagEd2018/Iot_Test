@@ -3,7 +3,7 @@ import numpy as np
 from . import Monitor, sigmoid
 
 
-class ContactMonitor(Monitor):
+class PirMonitor(Monitor):
     def __init__(self, sensitivity=1):
         super().__init__()
 
