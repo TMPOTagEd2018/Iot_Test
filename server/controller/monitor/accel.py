@@ -22,9 +22,9 @@ class AccelMonitor(Monitor):
     def handler(self, buffer: [int]):
         # the sensor reports degrees/s
 
-        # observe the last 10 values and check if the box is rotating quickly
+        # observe the last 10 values and check if the box is moving quickly
 
-        m = np.max(buffer) / 10
+        m = np.max(buffer) * np.sum(buffer)
 
         fac = sigmoid(m / 10 - 0.1)
 
