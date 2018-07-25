@@ -11,6 +11,7 @@ interface ThreatRow {
 };
 
 export default (db: sqlite.Database) => {
+    
     function getOne(query: string): Promise<ThreatRow> {
         return new Promise((res, rej) => db.get(query, (err, row) => err ? rej(err) : res(row)));
     }

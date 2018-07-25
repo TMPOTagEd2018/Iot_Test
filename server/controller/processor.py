@@ -34,18 +34,21 @@ class ThreatProcessor:
         fac = sigmoid((threat_score - self.prev_score) * 2.7)
         threat_score = threat_score * fac + self.prev_score * (1 - fac)
 
-        # print(",".join(str(z) for z in [*buffer, threat_score]))
-
         t = round(time.time(), 3)
         ps = round(self.prev_score, 1)
         ts = round(threat_score, 1)
 
-        self.conn.execute(
-            f"INSERT INTO threats VALUES ({t}, NULL, NULL, {ps}, {ts})")
+        # prevent massive db overload from minute numerical jitter
+        if ps == ts:
+            return
+
+        cur = self.conn.cursor()
+        cur.execute(f"INSERT INTO threats VALUES ({t}, NULL, NULL, {ps}, {ts})")
 
         if self.db_lock.acquire(blocking=False):
             try:
-                self.conn.commit()
+                cur.commit()
+                cur.close()
             finally:
                 self.db_lock.release()
 

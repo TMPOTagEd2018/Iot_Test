@@ -40,7 +40,7 @@ const dbPath = path.join(basePath, "data.db");
 logger.info(`Base path: ${basePath}`);
 logger.info(`Database path: ${dbPath}`);
 
-const db = new sqlite.Database(dbPath);
+const db = new sqlite.Database(dbPath, sqlite.OPEN_READONLY);
 
 const app = new Koa();
 const router = new KoaRouter();
