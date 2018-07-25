@@ -57,7 +57,7 @@ app.use(async (ctx, next) => {
     try {
         await next();
     } catch (e) {
-        logger.error(e);
+        logger.error(`error at ${ctx.method} ${ctx.href}: ${e}`);
     }
 });
 

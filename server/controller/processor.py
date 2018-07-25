@@ -44,7 +44,9 @@ class ThreatProcessor:
             f"INSERT INTO threats VALUES ({t}, NULL, NULL, {ps}, {ts})")
 
         if self.db_lock.acquire(blocking=False):
-            self.conn.commit()
-            self.db_lock.release()
+            try:
+                self.conn.commit()
+            finally:
+                self.db_lock.release()
 
         self.prev_score = threat_score
