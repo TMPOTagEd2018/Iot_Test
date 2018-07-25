@@ -48,7 +48,9 @@
                         <p class="text-muted">{{ sensor.type }}</p>
                         <template v-if="sensor.data">
                             <p class="m-0">
-                                <span :class="{ 'text-dark': (+new Date() - sensor.data.timestamp * 1000) < 10000 }">{{ sensor.data.value | format(sensor.format) }}</span>
+                                <span :class="{ 'text-dark': (+new Date() - sensor.data.timestamp * 1000) < 10000 }">
+                                    {{ Math.round(sensor.data.value, 1) | format(sensor.format) }}
+                                </span>
                                 <span class="small">
                                     {{ sensor.data.timestamp * 1000 | ago }} ago
                                 </span>
