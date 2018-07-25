@@ -47,7 +47,6 @@ class ThreatProcessor:
 
         if self.db_lock.acquire(blocking=False):
             try:
-                cur.commit()
                 cur.close()
             finally:
                 self.db_lock.release()
