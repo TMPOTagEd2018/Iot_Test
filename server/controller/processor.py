@@ -14,12 +14,12 @@ class ThreatProcessor:
     prev_score: float = 0
 
     def __init__(self, threats: [Observable], conn: sqlite3.Connection, sensitivity: float):
+        self.db_lock = threading.Lock()
         self.threats = threats
         self.conn = conn
         self.sensitivity = sensitivity
         self.query = Observable.combine_latest(threats, lambda *data: data)
         self.subscription: Disposable = self.query.subscribe(self.on_threat)
-        self.db_lock = threading.Lock()
 
     def on_threat(self, buffer: [int]):
         if -1 in buffer:
@@ -42,6 +42,7 @@ class ThreatProcessor:
 
         self.conn.execute(
             f"INSERT INTO threats VALUES ({t}, NULL, NULL, {ps}, {ts})")
+
         if self.db_lock.acquire(blocking=False):
             self.conn.commit()
             self.db_lock.release()
