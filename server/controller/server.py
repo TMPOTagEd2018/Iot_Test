@@ -159,14 +159,17 @@ def on_message(client: mqtt.Client, userdata, msg: mqtt.MQTTMessage):
         authenticated[node_name] = True
         return
 
-    if msg.topic in monitors and (node_name in authenticated.keys() or args.watch):
-        value = float(msg.payload.decode())
-        monitors[msg.topic].input(value)
+    if msg.topic in monitors:
+        if node_name in authenticated.keys() or args.watch:
+            value = float(msg.payload.decode())
+            monitors[msg.topic].input(value)
 
-        if sensor_name == "heartbeat":
-            write_heartbeat(node_name)
+            if sensor_name == "heartbeat":
+                write_heartbeat(node_name)
+            else:
+                write_cache(node_name, sensor_name, value)
         else:
-            write_cache(node_name, sensor_name, value)
+            print(f"rejected value {msg.payload} from {msg.topic} because {node_name} not in {authenticated.keys()}")
 
 
 client = mqtt.Client()
