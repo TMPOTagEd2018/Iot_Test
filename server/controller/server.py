@@ -83,7 +83,8 @@ dh = keyex.DiffieHellman()
 private_key, public_key = dh.get_private_key(), dh.gen_public_key()
 
 
-print(f"Server initialising, public key {public_key}")
+print(f"Server initialising, public key {hex(public_key)[:16] + hex(public_key)[-16:]}")
+
 if args.watch:
     print("Watch mode enabled.")
 
@@ -153,7 +154,9 @@ def on_message(client: mqtt.Client, userdata, msg: mqtt.MQTTMessage):
 
         sk = dh.gen_shared_key(int(they_pk))
 
-        print(f"Key exchange completed with {node_name} node, shared key {sk}")
+        abbrev_sk = hex(sk)[:16] + hex(sk)[-16:]
+
+        print(f"Key exchange completed with {node_name} node, shared key {abbrev_sk}")
         monitors[node_name + "/heartbeat"] = monitor.heartbeat.HeartbeatMonitor(sk)
         authenticated[node_name] = True
         return
@@ -177,6 +180,7 @@ client.connect("10.90.12.213", 8883, 60)
 
 if not args.watch:
     client.publish("server/init", True, qos=2)
+    print("init signal broadcasted")
 
 # Blocking call that processes network traffic, dispatches callbacks and
 # handles reconnecting.
