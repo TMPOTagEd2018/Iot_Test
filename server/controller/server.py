@@ -154,9 +154,7 @@ def on_message(client: mqtt.Client, userdata, msg: mqtt.MQTTMessage):
 
         sk = dh.gen_shared_key(int(they_pk))
 
-        abbrev_sk = hex(sk)[:16] + hex(sk)[-16:]
-
-        print(f"Key exchange completed with {node_name} node, shared key {abbrev_sk}")
+        print(f"Key exchange completed with {node_name} node, shared key {sk}")
         monitors[node_name + "/heartbeat"] = monitor.heartbeat.HeartbeatMonitor(sk)
         authenticated[node_name] = True
         return
