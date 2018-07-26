@@ -27,7 +27,7 @@ class ThreatProcessor:
 
         threat_score = (np.sum(buffer) + b_max) / \
             (sigmoid(std / (b_max + 1)) * std + 1)
-        fac = sigmoid((threat_score - self.prev_score) * 2.7)
+        fac = sigmoid((threat_score - self.prev_score) * 2)
         threat_score = threat_score * fac + self.prev_score * (1 - fac)
 
         # prevent massive db overload from minute numerical jitter

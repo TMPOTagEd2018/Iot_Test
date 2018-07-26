@@ -30,8 +30,8 @@ args = parser.parse_args()
 monitors: Dict[str, monitor.Monitor] = {
     "room/pir": monitor.pir.PirMonitor(0.3),
     "room/lux": monitor.lux.LuxMonitor(0.5),
-    "door/accel": monitor.accel.AccelMonitor(2),
-    "door/contact": monitor.contact.ContactMonitor(2),
+    "door/accel": monitor.accel.AccelMonitor(3),
+    "door/contact": monitor.contact.ContactMonitor(1.5),
     "box/accel": monitor.accel.AccelMonitor(2),
     "box/contact": monitor.contact.ContactMonitor(3)
 }
