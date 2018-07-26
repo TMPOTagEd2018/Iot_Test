@@ -30,7 +30,7 @@
         </div>
 
         <p class="text-center font-weight-bold">
-            Level {{ threatLevel }}
+            Level {{ Math.round(threatLevel, 1) }}
         </p>
 
         <div class="card-columns">
@@ -38,8 +38,13 @@
                 <h5 class="card-header d-flex justify-content-between align-items-baseline">
                     <span>{{ node.name }}</span>
                     <span class="font-weight-bold text-warning small" v-if="node.heartbeat === null">Not connected</span>
-                    <span class="font-weight-bold text-danger small" v-else-if="node.heartbeat < +new Date() / 1000 - 10">Offline</span>
-                    <span class="text-muted small" v-else>Last seen {{ node.heartbeat * 1000 | ago }} ago</span>
+                    <span 
+                    class="font-weight-bold text-danger small" 
+                    :title="node.heartbeat * 1000 | ago"
+                    v-else-if="node.heartbeat < +new Date() / 1000 - 10">
+                    Offline
+                    </span>
+                    <span class="text-muted small" :title="node.heartbeat" v-else>Last seen {{ node.heartbeat * 1000 | ago }} ago</span>
                 </h5>
 
                 <ul class="list-group list-group-flush">
@@ -49,7 +54,7 @@
                         <template v-if="sensor.data">
                             <p class="m-0">
                                 <span :class="{ 'text-dark': (+new Date() - sensor.data.timestamp * 1000) < 10000 }">
-                                    {{ Math.round(sensor.data.value, 2) | format(sensor.format) }}
+                                    {{ parseFloat(sensor.data.value.toFixed(2)) | format(sensor.format) }}
                                 </span>
                                 <span class="small">
                                     {{ sensor.data.timestamp * 1000 | ago }} ago

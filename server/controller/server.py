@@ -28,10 +28,10 @@ parser.add_argument("--watch", help="Run the server in watch mode. In this mode,
 args = parser.parse_args()
 
 monitors: Dict[str, monitor.Monitor] = {
-    "room/pir": monitor.pir.PirMonitor(1),
-    "room/lux": monitor.lux.LuxMonitor(1),
-    "door/accel": monitor.accel.AccelMonitor(1),
-    "door/contact": monitor.contact.ContactMonitor(1),
+    "room/pir": monitor.pir.PirMonitor(0.3),
+    "room/lux": monitor.lux.LuxMonitor(0.5),
+    "door/accel": monitor.accel.AccelMonitor(2),
+    "door/contact": monitor.contact.ContactMonitor(2),
     "box/accel": monitor.accel.AccelMonitor(2),
     "box/contact": monitor.contact.ContactMonitor(3)
 }
@@ -50,13 +50,14 @@ def threat_handler(level: float):
 
     db.write_threat(level)
 
-    if level > 8 and not alarm:
-        alarm = True
-        client.publish("server/alarm", 1, qos=1)
+    if not args.watch:
+        if level > 8 and not alarm:
+            alarm = True
+            client.publish("server/alarm", 1, qos=1)
 
-    if level < 8 and alarm:
-        alarm = False
-        client.publish("server/alarm", 0, qos=1)
+        if level < 8 and alarm:
+            alarm = False
+            client.publish("server/alarm", 0, qos=1)
 
 
 processor = ThreatProcessor(list(map(lambda m: m.threats, monitors.values())), threat_handler)
@@ -109,6 +110,11 @@ def on_message(client: mqtt.Client, userdata, msg: mqtt.MQTTMessage):
         print(f"Key exchange completed with {node_name} node, shared key {sk}")
         monitors[node_name + "/heartbeat"] = monitor.heartbeat.HeartbeatMonitor(sk)
         authenticated[node_name] = True
+
+        if node_name == "box" and alarm and not args.watch:
+            # box node was turned off and is coming back online, hit the alarm!
+            client.publish("server/alarm", 1, qos=1)
+
         return
 
     if msg.topic in monitors:

@@ -1,8 +1,6 @@
 from rx import Observable
 from rx.core import Disposable
 
-import sqlite3
-
 import threading
 
 import numpy as np
