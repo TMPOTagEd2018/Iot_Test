@@ -1,50 +1,76 @@
 import * as Koa from "koa";
 import * as KoaRouter from "koa-router";
-import * as sqlite from "sqlite3";
 import * as winston from "winston";
+import * as path from "path";
+import * as fs from "fs-extra";
 import { performance } from "perf_hooks";
 
-interface ThreatRow {
-    timestamp: number;
-    node: string | null;
-    threat: string | null;
-    old_level: number;
-    new_level: number;
-};
-
-export default (logger: winston.Logger, db: sqlite.Database) => {
-
-    function getOne(query: string): Promise<ThreatRow> {
-        return new Promise((res, rej) => db.get(query, (err, row) => err ? rej(err) : res(row)));
-    }
-
-    function getMany(query: string): Promise<ThreatRow[]> {
-        return new Promise((res, rej) => db.all(query, (err, row) => err ? rej(err) : res(row)));
-    }
-
+export default (logger: winston.Logger, basePath: string) => {
     async function handler(ctx: Koa.Context) {
         const t0 = performance.now();
 
-        const limit = Math.min(500, ctx.params.limit || 500);
+        let position = 0, current = 0, start = 0, total = 0;
+
+        const POINTER_SIZE = 4;
+        const RECORD_SIZE = 12;
+        const RECORD_COUNT = 2400;
+
+        const limit = Math.min(RECORD_COUNT, ctx.params.limit || 1);
         const { since, minLevel, maxLevel } = ctx.params;
 
-        let condition = "";
-        if (since) condition += `timestamp >= ${since}`;
-        if (minLevel) condition += `new_level >= ${minLevel}`;
-        if (maxLevel) condition += `new_level <= ${maxLevel}`;
+        const fn = path.join(basePath, "cache/threat");
 
-        ctx.response.body = await getMany(`SELECT * FROM threats ${condition ? 'WHERE ' + condition : ''} ORDER BY timestamp DESC LIMIT ${limit}`);
+        if (!await fs.pathExists(fn)) {
+            ctx.response.status = 404;
+            return;
+        }
+
+        const handle = await fs.open(fn, "r");
+        const buf = Buffer.alloc(RECORD_SIZE);
+        await fs.read(handle, buf, 0, POINTER_SIZE, 0);
+        position = buf.readInt32LE(0);
+        start = (position - limit + RECORD_COUNT) % RECORD_COUNT;
+        const records = [];
+
+        current = start;
+
+        while (current != position) {
+            const result = await fs.read(handle, buf, 0, RECORD_SIZE, POINTER_SIZE + current * RECORD_SIZE);
+            if (result.bytesRead !== RECORD_SIZE) {
+                logger.warning(`reading sensor data on threat cache read only ${result.bytesRead} bytes, expecting ${RECORD_SIZE}`);
+            }
+
+            const timestamp = buf.readDoubleLE(0);
+            const value = buf.readFloatLE(8);
+
+            if(value < minLevel) continue;
+            if(value > maxLevel) continue;
+
+            total++;
+
+            if (++current >= RECORD_COUNT) {
+                current = 0;
+            }
+
+            if (timestamp === 0) continue;
+            if (since && timestamp < since) continue;
+
+            records.unshift({ timestamp, value });
+        }
+
+
+        await fs.close(handle);
+
+        ctx.response.body = records;
 
         const t1 = performance.now();
 
         if (t1 - t0 > 1000)
-            logger.warning(`database query took ${t1 - t0}ms`);
+            logger.warning(`threat cache query took ${t1 - t0}ms`);
     }
 
     return new KoaRouter()
-        .get("/", async ctx => {
-            ctx.response.body = await getOne("SELECT * FROM threats ORDER BY timestamp DESC");
-        })
+        .get("/", handler)
         .get("/limit::limit(\\d+)", handler)
         .get("/since::since(\\d+)", handler)
         .get("/since::since(\\d+)/limit::limit(\\d+)", handler)

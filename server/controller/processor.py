@@ -8,6 +8,7 @@ import threading
 
 import numpy as np
 from monitor import sigmoid
+from server import write_threat
 
 
 class ThreatProcessor:
@@ -44,10 +45,4 @@ class ThreatProcessor:
         if ps == ts:
             return
 
-        self.conn.execute(f"INSERT INTO threats VALUES ({t}, NULL, NULL, {ps}, {ts})")
-
-        if self.db_lock.acquire(blocking=False):
-            try:
-                self.conn.commit()
-            finally:
-                self.db_lock.release()
+        write_threat(ts)

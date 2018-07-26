@@ -1,9 +1,8 @@
 import * as Koa from "koa";
 import * as KoaRouter from "koa-router";
 import * as winston from "winston";
-import * as fs from "fs-extra";
 import * as path from "path";
-import { performance } from "perf_hooks";
+import * as fs from "fs-extra";
 
 export default (logger: winston.Logger, basePath: string) => {
     async function handler(ctx: Koa.Context) {
@@ -19,6 +18,7 @@ export default (logger: winston.Logger, basePath: string) => {
         const { since, node, sensor } = ctx.params;
 
         const fn = path.join(basePath, "cache", node, sensor);
+
         if (!await fs.pathExists(fn)) {
             ctx.response.status = 404;
             return;

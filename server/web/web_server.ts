@@ -47,7 +47,7 @@ const app = new Koa();
 const router = new KoaRouter();
 const api = new KoaRouter();
 
-api.use("/threat", ThreatApi(logger, db).routes());
+api.use("/threat", ThreatApi(logger, basePath).routes());
 api.use("/sensor", SensorApi(logger, basePath).routes());
 
 router.use("/api", api.routes());

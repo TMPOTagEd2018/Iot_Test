@@ -22,8 +22,13 @@ import keyex
 import sqlite3
 import struct
 
+# I/O
 import os.path as path
 import os
+
+# Async
+import queue
+import threading
 
 import time
 
@@ -87,6 +92,64 @@ print(f"Server initialising, public key {hex(public_key)[:16] + hex(public_key)[
 
 if args.watch:
     print("Watch mode enabled.")
+
+
+def threat_level_writer(queue: queue.Queue, db: sqlite3.Connection):
+    last_write = time.time()
+    records = []
+    last_record = None
+    while True:
+        timestamp, level = queue.get()
+        record = (timestamp, None if last_record is None else last_record[3], timestamp)
+        records.append(record)
+        last_record = record
+
+        if time.time() - last_write > 10:
+            conn.executemany("INSERT INTO threats(timestamp, old_level, new_level) VALUES (?, ?, ?)", records)
+            records.clear()
+            last_write = time.time()
+
+
+threat_level_queue = queue.Queue()
+threat_level_daemon = threading.Thread(target=threat_level_writer, args=(threat_level_queue, conn))
+threat_level_daemon.daemon = True
+threat_level_daemon.start()
+
+
+def write_threat(level: float):
+    timestamp = time.time()
+    threat_level_queue.put((timestamp, level))
+    cache_file_name = path.join(base_dir, "cache/threat")
+
+    POINTER_SIZE = 4
+    RECORD_SIZE = 12
+    RECORD_COUNT = 2400
+    with open(cache_file_name, "r+b" if os.path.exists(cache_file_name) else "w+b") as cache_file:
+        current_size = os.stat(cache_file_name).st_size
+        target_size = POINTER_SIZE + RECORD_SIZE * RECORD_COUNT
+
+        if current_size < target_size:
+            cache_file.seek(0, 2)
+            bloc = bytearray(target_size - current_size)
+            cache_file.write(bloc)
+
+        cache_file.seek(0, 0)
+
+        # read position of ring buffer
+        position_bytes = cache_file.read(POINTER_SIZE)
+        position = struct.unpack("<L", position_bytes)[0]
+
+        file_position = POINTER_SIZE + position * RECORD_SIZE
+
+        cache_file.seek(file_position, 0)
+        cache_file.write(struct.pack("<df", timestamp, level))
+
+        position = (position + 1) % RECORD_COUNT
+        position_bytes = struct.pack("<L", position)
+
+        cache_file.seek(0, 0)
+        cache_file.write(position_bytes)
+        cache_file.flush()
 
 
 def write_heartbeat(node_name: str):
