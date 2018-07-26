@@ -38,17 +38,16 @@ class ThreatProcessor:
         ps = round(self.prev_score, 1)
         ts = round(threat_score, 1)
 
+        self.prev_score = threat_score
+
         # prevent massive db overload from minute numerical jitter
         if ps == ts:
             return
 
-        cur = self.conn.cursor()
-        cur.execute(f"INSERT INTO threats VALUES ({t}, NULL, NULL, {ps}, {ts})")
+        self.conn.execute(f"INSERT INTO threats VALUES ({t}, NULL, NULL, {ps}, {ts})")
 
         if self.db_lock.acquire(blocking=False):
             try:
-                cur.close()
+                self.conn.commit()
             finally:
                 self.db_lock.release()
-
-        self.prev_score = threat_score

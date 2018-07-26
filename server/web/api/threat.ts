@@ -1,6 +1,7 @@
 import * as Koa from "koa";
 import * as KoaRouter from "koa-router";
 import * as sqlite from "sqlite3";
+import * as winston from "winston";
 
 interface ThreatRow {
     timestamp: number;
@@ -10,8 +11,8 @@ interface ThreatRow {
     new_level: number;
 };
 
-export default (db: sqlite.Database) => {
-    
+export default (logger: winston.Logger, db: sqlite.Database) => {
+
     function getOne(query: string): Promise<ThreatRow> {
         return new Promise((res, rej) => db.get(query, (err, row) => err ? rej(err) : res(row)));
     }
@@ -21,6 +22,8 @@ export default (db: sqlite.Database) => {
     }
 
     async function handler(ctx: Koa.Context) {
+        const t0 = performance.now();
+
         const limit = Math.min(500, ctx.params.limit || 500);
         const { since, minLevel, maxLevel } = ctx.params;
 
@@ -30,6 +33,11 @@ export default (db: sqlite.Database) => {
         if (maxLevel) condition += `new_level <= ${maxLevel}`;
 
         ctx.response.body = await getMany(`SELECT * FROM threats ${condition ? 'WHERE ' + condition : ''} ORDER BY timestamp DESC LIMIT ${limit}`);
+
+        const t1 = performance.now();
+
+        if (t1 - t0 > 1000)
+            logger.warn(`database query took ${t1 - t0}ms`);
     }
 
     return new KoaRouter()

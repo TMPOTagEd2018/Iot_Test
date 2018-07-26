@@ -24,7 +24,10 @@ class AccelMonitor(Monitor):
 
         # observe the last 10 values and check if the box is moving quickly
 
-        m = np.max(buffer) * np.sum(buffer)
+        buffer = np.array(buffer)
+        buffer[abs(buffer) < 0.1] = 0
+
+        m = np.max(buffer * 10) * np.sum(buffer * 10)
 
         fac = sigmoid(m / 10 - 0.1)
 

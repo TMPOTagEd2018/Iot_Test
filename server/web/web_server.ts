@@ -46,7 +46,7 @@ const app = new Koa();
 const router = new KoaRouter();
 const api = new KoaRouter();
 
-api.use("/threat", ThreatApi(db).routes());
+api.use("/threat", ThreatApi(logger, db).routes());
 api.use("/sensor", SensorApi(logger, basePath).routes());
 
 router.use("/api", api.routes());
@@ -54,8 +54,13 @@ router.use("/api", api.routes());
 app.use(async (ctx, next) => {
     logger.debug(`request: ${ctx.protocol} ${ctx.method} ${ctx.href}`);
 
+    const t0 = performance.now();
     try {
         await next();
+        const t1 = performance.now();
+
+        if (t1 - t0 > 1000)
+            logger.warn(`request at ${ctx.method} ${ctx.href} took ${t1 - t0}ms`)
     } catch (e) {
         logger.error(`error at ${ctx.method} ${ctx.href}: ${e}`);
     }

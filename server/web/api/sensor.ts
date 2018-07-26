@@ -6,7 +6,9 @@ import * as path from "path";
 
 export default (logger: winston.Logger, basePath: string) => {
     async function handler(ctx: Koa.Context) {
-        let position = 0, current = 0, start = 0;
+        const t0 = performance.now();
+
+        let position = 0, current = 0, start = 0, total = 0;
 
         const POINTER_SIZE = 4;
         const RECORD_SIZE = 13;
@@ -33,26 +35,33 @@ export default (logger: winston.Logger, basePath: string) => {
         while (current != position) {
             const result = await fs.read(handle, buf, 0, RECORD_SIZE, POINTER_SIZE + current * RECORD_SIZE);
             if (result.bytesRead !== RECORD_SIZE) {
-                logger.warning(`Reading sensor data on ${node}/${sensor} read only ${result.bytesRead} bytes, expecting ${RECORD_SIZE}`);
+                logger.warning(`reading sensor data on ${node}/${sensor} read only ${result.bytesRead} bytes, expecting ${RECORD_SIZE}`);
             }
 
             const timestamp = buf.readDoubleLE(0);
             const isFloat = buf[8] == 1;
             const value = isFloat ? buf.readFloatLE(9) : buf.readInt32LE(9);
 
-            if (timestamp === 0) continue;
-            if (since && timestamp < since) continue;
-
-            records.unshift({ timestamp, value });
+            total++;
 
             if (++current >= RECORD_COUNT) {
                 current = 0;
             }
+
+            if (timestamp === 0) continue;
+            if (since && timestamp < since) continue;
+
+            records.unshift({ timestamp, value });
         }
 
+        
         await fs.close(handle);
-
+        
         ctx.response.body = records;
+        
+        const t1 = performance.now();
+
+        logger.warn(`cache query took ${t1 - t0}ms to search through ${total} records with start ${start} and end ${position}`);
     }
 
     return new KoaRouter()
