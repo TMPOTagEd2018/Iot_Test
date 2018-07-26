@@ -2,6 +2,7 @@ import * as Koa from "koa";
 import * as KoaRouter from "koa-router";
 import * as sqlite from "sqlite3";
 import * as winston from "winston";
+import { performance } from "perf_hooks";
 
 interface ThreatRow {
     timestamp: number;
@@ -37,7 +38,7 @@ export default (logger: winston.Logger, db: sqlite.Database) => {
         const t1 = performance.now();
 
         if (t1 - t0 > 1000)
-            logger.warn(`database query took ${t1 - t0}ms`);
+            logger.warning(`database query took ${t1 - t0}ms`);
     }
 
     return new KoaRouter()

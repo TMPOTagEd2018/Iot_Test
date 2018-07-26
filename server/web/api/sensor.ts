@@ -3,6 +3,7 @@ import * as KoaRouter from "koa-router";
 import * as winston from "winston";
 import * as fs from "fs-extra";
 import * as path from "path";
+import { performance } from "perf_hooks";
 
 export default (logger: winston.Logger, basePath: string) => {
     async function handler(ctx: Koa.Context) {
@@ -54,14 +55,15 @@ export default (logger: winston.Logger, basePath: string) => {
             records.unshift({ timestamp, value });
         }
 
-        
+
         await fs.close(handle);
-        
+
         ctx.response.body = records;
-        
+
         const t1 = performance.now();
 
-        logger.warn(`cache query took ${t1 - t0}ms to search through ${total} records with start ${start} and end ${position}`);
+        if (t1 - t0 > 1000)
+            logger.warning(`cache query took ${t1 - t0}ms to search through ${total} records with start ${start} and end ${position}`);
     }
 
     return new KoaRouter()

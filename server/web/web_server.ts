@@ -3,6 +3,7 @@ import * as http from "http";
 import * as http2 from "http2";
 import * as https from "https";
 import * as fs from "fs-extra";
+import { performance } from "perf_hooks";
 
 import * as Koa from "koa";
 import * as KoaRouter from "koa-router";
@@ -60,14 +61,15 @@ app.use(async (ctx, next) => {
         const t1 = performance.now();
 
         if (t1 - t0 > 1000)
-            logger.warn(`request at ${ctx.method} ${ctx.href} took ${t1 - t0}ms`)
+            logger.warning(`request at ${ctx.method} ${ctx.href} took ${t1 - t0}ms`)
     } catch (e) {
         logger.error(`error at ${ctx.method} ${ctx.href}: ${e}`);
     }
 });
 
-app.on("error", (err, ctx) => {
-    logger.error(err);
+app.on("error", (err: Error, ctx) => {
+    logger.error(err.message);
+    logger.error(err.stack);
 });
 
 app.use(router.routes());
