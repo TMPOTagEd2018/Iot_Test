@@ -42,7 +42,24 @@ print(f"Base dir: {base_dir}")
 
 db.init(base_dir)
 
-processor = ThreatProcessor(list(map(lambda m: m.threats, monitors.values())), db.write_threat, 5)
+alarm = False
+
+
+def threat_handler(level: float):
+    global alarm
+
+    db.write_threat(level)
+
+    if level > 8 and not alarm:
+        alarm = True
+        client.publish("server/alarm", 1, qos=1)
+
+    if level < 8 and alarm:
+        alarm = False
+        client.publish("server/alarm", 0, qos=1)
+
+
+processor = ThreatProcessor(list(map(lambda m: m.threats, monitors.values())), threat_handler)
 
 
 # The callback for when the client receives a CONNACK response from the server.

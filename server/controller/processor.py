@@ -12,11 +12,10 @@ from monitor import sigmoid
 class ThreatProcessor:
     prev_score: float = 0
 
-    def __init__(self, threats: [Observable], callback, sensitivity: float):
+    def __init__(self, threats: [Observable], callback):
         self.db_lock = threading.Lock()
         self.threats = threats
         self.callback = callback
-        self.sensitivity = sensitivity
         self.query = Observable.combine_latest(threats, lambda *data: data)
         self.subscription: Disposable = self.query.subscribe(self.on_threat)
 
@@ -36,5 +35,5 @@ class ThreatProcessor:
         # prevent massive db overload from minute numerical jitter
         if round(self.prev_score, 1) != round(threat_score, 1):
             self.callback(threat_score)
-            
+
         self.prev_score = threat_score

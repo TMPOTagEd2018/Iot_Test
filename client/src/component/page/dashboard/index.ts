@@ -9,18 +9,11 @@ export enum SensorType {
     PIR = "Passive Infrared Sensor"
 }
 
-export type SensorData = {
+export type Data = {
     timestamp: number;
     value: number;
 };
 
-export type ThreatData = {
-    timestamp: number;
-    node: string | null;
-    threat: string | null;
-    old_level: number;
-    new_level: number;
-};
 
 export class Sensor {
     // Display name
@@ -32,7 +25,7 @@ export class Sensor {
     // Units and such
     public format: string | ((value: string) => string);
 
-    public data: SensorData | null = null;
+    public data: Data | null = null;
 
     public type: SensorType;
 

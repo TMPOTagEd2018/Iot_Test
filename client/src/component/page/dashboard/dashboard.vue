@@ -49,7 +49,7 @@
                         <template v-if="sensor.data">
                             <p class="m-0">
                                 <span :class="{ 'text-dark': (+new Date() - sensor.data.timestamp * 1000) < 10000 }">
-                                    {{ Math.round(sensor.data.value, 1) | format(sensor.format) }}
+                                    {{ Math.round(sensor.data.value, 2) | format(sensor.format) }}
                                 </span>
                                 <span class="small">
                                     {{ sensor.data.timestamp * 1000 | ago }} ago
@@ -72,7 +72,7 @@ import * as vue from "av-ts";
 import Vue from "vue";
 
 import LiveChart from "@control/live-chart.vue";
-import { Node, Sensor, SensorType, ThreatData } from "./index";
+import { Node, Sensor, SensorType, Data } from "./index";
 
 
 @vue.Component({ components: { LiveChart } })
@@ -129,9 +129,9 @@ export default class Dashboard extends Vue {
         this.nodes.forEach(n => n.update());
 
         try {
-            const res = await axios.get("/api/threat/");
-            const data: ThreatData = res.data;
-            this.threatLevel = data.new_level;
+            const res = await axios.get("/api/threat");
+            const data: Data[] = res.data;
+            this.threatLevel = data[0].value;
             this.threatLevelMax = Math.max(this.threatLevel, this.threatLevelMax);
         } catch {
         }
@@ -143,7 +143,7 @@ export default class Dashboard extends Vue {
                 `/api/threat/since:${Math.floor(Math.min(this.lastUpdate, time - this.window))}/limit:200`
             );
 
-            let data: ThreatData[] = res.data;
+            let data: Data[] = res.data;
 
             const chart: any = this.$refs.threatChart as LiveChart;
 
@@ -154,7 +154,7 @@ export default class Dashboard extends Vue {
 
             let points = data
                 .filter(d => d.timestamp > this.lastUpdate)
-                .map(d => { return { t: d.timestamp * 1000, y: d.new_level }; })
+                .map(d => { return { t: d.timestamp * 1000, y: d.value }; })
                 .sort((a, b) => a.t < b.t ? -1 : 1);
 
             chart.push(...points);
