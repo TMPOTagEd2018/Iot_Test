@@ -2,22 +2,20 @@ from rx import Observable
 from rx.core import Disposable
 
 import sqlite3
-import time
 
 import threading
 
 import numpy as np
 from monitor import sigmoid
-from server import write_threat
 
 
 class ThreatProcessor:
     prev_score: float = 0
 
-    def __init__(self, threats: [Observable], conn: sqlite3.Connection, sensitivity: float):
+    def __init__(self, threats: [Observable], callback, sensitivity: float):
         self.db_lock = threading.Lock()
         self.threats = threats
-        self.conn = conn
+        self.callback = callback
         self.sensitivity = sensitivity
         self.query = Observable.combine_latest(threats, lambda *data: data)
         self.subscription: Disposable = self.query.subscribe(self.on_threat)
@@ -35,14 +33,8 @@ class ThreatProcessor:
         fac = sigmoid((threat_score - self.prev_score) * 2.7)
         threat_score = threat_score * fac + self.prev_score * (1 - fac)
 
-        t = round(time.time(), 3)
-        ps = round(self.prev_score, 1)
-        ts = round(threat_score, 1)
-
-        self.prev_score = threat_score
-
         # prevent massive db overload from minute numerical jitter
-        if ps == ts:
-            return
-
-        write_threat(ts)
+        if round(self.prev_score, 1) != round(threat_score, 1):
+            self.callback(threat_score)
+            
+        self.prev_score = threat_score
