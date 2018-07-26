@@ -3,6 +3,7 @@ import * as KoaRouter from "koa-router";
 import * as winston from "winston";
 import * as path from "path";
 import * as fs from "fs-extra";
+import { performance } from "perf_hooks";
 
 export default (logger: winston.Logger, basePath: string) => {
     async function handler(ctx: Koa.Context) {
