@@ -32,10 +32,10 @@ class ThreatProcessor:
         # threat_score = (np.average(b_s) + np.max(b_s)) * 5
 
         fac = sigmoid((bsum - self.prev_score) * 10)
-        fac = max(fac, 2e-4)
+        fac = max(fac, 1.1e-4)
         threat_score = bsum * fac + self.prev_score * (1 - fac)
 
-        print(*buffer, threat_score, self.prev_score, fac, sep=",")
+        # print(*buffer, threat_score, self.prev_score, fac, sep=",")
 
         # prevent massive db overload from minute numerical jitter
         if round(self.prev_score_write, 1) != round(threat_score, 1) and self.on_threat is not None:

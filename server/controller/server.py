@@ -21,6 +21,8 @@ import keyex
 import db
 import os.path as path
 
+import subprocess
+
 from typing import Dict
 
 parser = argparse.ArgumentParser()
@@ -141,6 +143,8 @@ def threat_handler(level: float):
         if level > 8 and not alarm:
             alarm = True
             client.publish("server/alarm", 1, qos=1)
+
+
 
         if level < 8 and alarm:
             alarm = False
