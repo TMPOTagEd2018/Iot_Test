@@ -28,12 +28,12 @@ parser.add_argument("--watch", help="Run the server in watch mode. In this mode,
 args = parser.parse_args()
 
 monitors: Dict[str, monitor.Monitor] = {
-    "room/pir": monitor.pir.PirMonitor(0.3),
-    "room/lux": monitor.lux.LuxMonitor(0.5),
-    "door/accel": monitor.accel.AccelMonitor(3),
-    "door/contact": monitor.contact.ContactMonitor(1.5),
-    "box/accel": monitor.accel.AccelMonitor(2),
-    "box/contact": monitor.contact.ContactMonitor(3)
+    "room/pir": monitor.pir.PirMonitor(0.25),
+    "room/lux": monitor.lux.LuxMonitor(1),
+    "door/accel": monitor.accel.AccelMonitor(1.25),
+    "door/contact": monitor.contact.ContactMonitor(3.25),
+    "box/accel": monitor.accel.AccelMonitor(2.25),
+    "box/contact": monitor.contact.ContactMonitor(3.5)
 }
 
 base_dir = path.dirname(path.dirname(path.abspath(__file__)))
@@ -43,24 +43,7 @@ print(f"Base dir: {base_dir}")
 db.init(base_dir)
 
 alarm = False
-
-
-def threat_handler(level: float):
-    global alarm
-
-    db.write_threat(level)
-
-    if not args.watch:
-        if level > 8 and not alarm:
-            alarm = True
-            client.publish("server/alarm", 1, qos=1)
-
-        if level < 8 and alarm:
-            alarm = False
-            client.publish("server/alarm", 0, qos=1)
-
-
-processor = ThreatProcessor(list(map(lambda m: m.threats, monitors.values())), threat_handler)
+processor = ThreatProcessor(list(map(lambda m: m.threats, monitors.values())))
 
 
 # The callback for when the client receives a CONNACK response from the server.
@@ -107,8 +90,18 @@ def on_message(client: mqtt.Client, userdata, msg: mqtt.MQTTMessage):
 
         sk = dh.gen_shared_key(int(they_pk))
 
-        print(f"Key exchange completed with {node_name} node, shared key {sk}")
-        monitors[node_name + "/heartbeat"] = monitor.heartbeat.HeartbeatMonitor(sk)
+        print(f"key exchange completed with {node_name} node, shared key {sk}")
+
+        hbname = node_name + "/heartbeat"
+        if hbname in monitors:
+            hbm: monitor.heartbeat.HeartbeatMonitor = monitors[hbname]
+            hbm.init(sk)
+        else:
+            hbm = monitor.heartbeat.HeartbeatMonitor(sk)
+            monitors[hbname] = hbm
+            processor.threats.append(hbm.threats)
+            processor.update()
+
         authenticated[node_name] = True
 
         if node_name == "box" and alarm and not args.watch:
@@ -136,6 +129,25 @@ client.on_message = on_message
 client.tls_set(path.join(base_dir, "certs/mqtt/ca.crt"))
 
 client.connect("10.90.12.213", 8883, 60)
+
+
+def threat_handler(level: float):
+    global alarm
+    global client
+
+    db.write_threat(level)
+
+    if not args.watch and client is not None:
+        if level > 8 and not alarm:
+            alarm = True
+            client.publish("server/alarm", 1, qos=1)
+
+        if level < 8 and alarm:
+            alarm = False
+            client.publish("server/alarm", 0, qos=1)
+
+
+processor.on_threat = threat_handler
 
 if not args.watch:
     client.publish("server/init", True, qos=2)

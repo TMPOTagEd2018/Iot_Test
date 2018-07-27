@@ -11,7 +11,7 @@ class AccelMonitor(Monitor):
 
         self.query = self.data \
             .map(int) \
-            .buffer_with_count(10, 5) \
+            .buffer_with_count(30, 5) \
             .subscribe(self.handler)
 
         self.level = 0
@@ -24,13 +24,14 @@ class AccelMonitor(Monitor):
 
         # observe the last 10 values and check if the box is moving quickly
 
-        buffer = np.array(buffer)
-        buffer[abs(buffer) < 0.1] = 0
+        buffer = np.array(buffer, dtype=np.float)
+        buffer = abs(buffer)
 
-        m = np.max(buffer * 10) * np.sum(buffer * 10)
+        # anything less than 1 m/s2 is ignored
+        # anything greater than 1 m/s2
 
-        fac = sigmoid(m / 10 - 0.1)
+        m = np.max(buffer) * (np.std(buffer) + 1)
 
-        self.level = m * fac + self.level * (1 - fac)
+        self.level = sigmoid(m) * 2 - 1
 
         self.threats.on_next(self.level * self.sensitivity)

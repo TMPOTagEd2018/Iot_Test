@@ -25,11 +25,12 @@ def threat_level_writer(q: queue.Queue):
     while True:
         try:
             timestamp, level = q.get(timeout=10)
+
+            record = (timestamp, 0 if last_record is None else last_record[2], level)
+            records.append(record)
+            last_record = record
         except queue.Empty:
             pass
-        record = (timestamp, 0 if last_record is None else last_record[2], level)
-        records.append(record)
-        last_record = record
 
         if time.time() - last_write > 10:
             conn.executemany("INSERT INTO threats(timestamp, old_level, new_level) VALUES (?, ?, ?)", records)

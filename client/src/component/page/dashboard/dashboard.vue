@@ -136,7 +136,7 @@ export default class Dashboard extends Vue {
         try {
             const res = await axios.get("/api/threat");
             const data: Data[] = res.data;
-            this.threatLevel = data[0].value;
+            this.threatLevel = Math.min(10, data[0].value);
             this.threatLevelMax = Math.max(this.threatLevel, this.threatLevelMax);
         } catch {
         }
@@ -159,7 +159,7 @@ export default class Dashboard extends Vue {
 
             let points = data
                 .filter(d => d.timestamp > this.lastUpdate)
-                .map(d => { return { t: d.timestamp * 1000, y: d.value }; })
+                .map(d => { return { t: d.timestamp * 1000, y: Math.min(10, d.value) }; })
                 .sort((a, b) => a.t < b.t ? -1 : 1);
 
             chart.push(...points);

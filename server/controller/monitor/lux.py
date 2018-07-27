@@ -20,10 +20,8 @@ class LuxMonitor(Monitor):
         self.data.on_next(value)
 
     def handler(self, buffer: [int]):
-        m = np.sum(buffer * np.arange(0, 1, 1 / len(buffer))) / 11.475 / len(buffer)
+        buffer = np.array(buffer, dtype=np.float)
 
-        fac = sigmoid(m / 10 - 0.7)
-
-        self.level = m * fac + self.level * (1 - fac)
+        self.level = np.sum(buffer[buffer > 127]) / 255 / 10
 
         self.threats.on_next(self.level * self.sensitivity)

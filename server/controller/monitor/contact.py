@@ -24,8 +24,6 @@ class ContactMonitor(Monitor):
 
         m = np.sum(buffer)
 
-        fac = sigmoid(m / 10 - 0.7)
-
-        self.level = m * fac + self.level * (1 - fac)
+        self.level = 1 if m > 5 else 0
 
         self.threats.on_next(self.level * self.sensitivity)
