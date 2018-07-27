@@ -144,7 +144,9 @@ def threat_handler(level: float):
             alarm = True
             client.publish("server/alarm", 1, qos=1)
 
-
+            print("alarm activated")
+            enc = path.join(base_dir, "controller", "enc-final.py")
+            subprocess.run(f"python3.6 {enc}")
 
         if level < 8 and alarm:
             alarm = False
